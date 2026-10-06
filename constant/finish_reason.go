@@ -1,6 +1,6 @@
 package constant
 
-import "github.com/QuantumNous/new-api/relaykit/types"
+import "github.com/0uiYu/api-project/relaykit/types"
 
 // Finish reasons moved to types with the conversion kit.
 var (

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/setting"
+	"github.com/0uiYu/api-project/model"
+	"github.com/0uiYu/api-project/setting"
 	pancake "github.com/waffo-com/waffo-pancake-sdk-go"
 )
 

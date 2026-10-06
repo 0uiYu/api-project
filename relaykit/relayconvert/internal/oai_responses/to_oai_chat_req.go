@@ -8,11 +8,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/convmeta"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/internal/convdiag"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/reasoning"
+	"github.com/0uiYu/api-project/relaykit/dto"
+	"github.com/0uiYu/api-project/relaykit/relayconvert/convmeta"
+	"github.com/0uiYu/api-project/relaykit/relayconvert/internal/convdiag"
+	kitutil "github.com/0uiYu/api-project/relaykit/relayconvert/kitutil"
+	"github.com/0uiYu/api-project/relaykit/relayconvert/reasoning"
 )
 
 const (

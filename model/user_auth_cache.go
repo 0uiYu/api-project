@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/0uiYu/api-project/common"
 
 	"gorm.io/gorm"
 )

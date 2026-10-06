@@ -3,7 +3,7 @@ package openai
 import (
 	"testing"
 
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	relaycommon "github.com/0uiYu/api-project/relay/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

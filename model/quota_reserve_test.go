@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/0uiYu/api-project/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"

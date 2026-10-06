@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/0uiYu/api-project/service"
+	"github.com/0uiYu/api-project/setting/system_setting"
 	"github.com/gin-gonic/gin"
 )
 

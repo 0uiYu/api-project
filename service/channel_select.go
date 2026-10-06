@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/i18n"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/relaykit/types"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/constant"
+	"github.com/0uiYu/api-project/dto"
+	"github.com/0uiYu/api-project/i18n"
+	"github.com/0uiYu/api-project/logger"
+	"github.com/0uiYu/api-project/model"
+	"github.com/0uiYu/api-project/pkg/jsplugin"
+	"github.com/0uiYu/api-project/relaykit/types"
 	"github.com/gin-gonic/gin"
 )
 

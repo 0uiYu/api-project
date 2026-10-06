@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting/config"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/setting/config"
 )
 
 type ChatCompletionsToResponsesPolicy struct {

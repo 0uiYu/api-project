@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
+	"github.com/0uiYu/api-project/common"
+	pluginruntime "github.com/0uiYu/api-project/pkg/jsplugin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -3,8 +3,8 @@ package controller
 import (
 	"net/http"
 
-	"github.com/QuantumNous/new-api/setting/billing_setting"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/0uiYu/api-project/setting/billing_setting"
+	"github.com/0uiYu/api-project/setting/ratio_setting"
 
 	"github.com/gin-gonic/gin"
 )

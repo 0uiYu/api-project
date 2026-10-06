@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	hosttypes "github.com/QuantumNous/new-api/types"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/model"
+	relaycommon "github.com/0uiYu/api-project/relay/common"
+	"github.com/0uiYu/api-project/relaykit/dto"
+	"github.com/0uiYu/api-project/relaykit/types"
+	hosttypes "github.com/0uiYu/api-project/types"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"

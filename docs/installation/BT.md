@@ -139,7 +139,6 @@ docker-compose down && docker-compose up -d
 - [官方文档](https://docs.newapi.pro/zh/docs/installation)
 - [环境变量配置](https://docs.newapi.pro/zh/docs/installation/config-maintenance/environment-variables)
 - [常见问题](https://docs.newapi.pro/zh/docs/support/faq)
-- [GitHub 仓库](https://github.com/QuantumNous/new-api)
 
 ***
 
@@ -148,4 +147,3 @@ docker-compose down && docker-compose up -d
 ![宝塔面板 Docker 安装](https://github.com/user-attachments/assets/7a6fc03e-c457-45e4-b8f9-184508fc26b0)
 
 > ⚠️ 注意：密钥为环境变量 `SESSION_SECRET`，请务必设置！
-

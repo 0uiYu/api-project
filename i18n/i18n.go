@@ -10,9 +10,9 @@ import (
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/constant"
+	"github.com/0uiYu/api-project/relaykit/dto"
 )
 
 const (

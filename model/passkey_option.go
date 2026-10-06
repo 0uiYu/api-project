@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/setting/system_setting"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

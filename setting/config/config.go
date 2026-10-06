@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/0uiYu/api-project/common"
 )
 
 // ConfigManager 统一管理所有配置

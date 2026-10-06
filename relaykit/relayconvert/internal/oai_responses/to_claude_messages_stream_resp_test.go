@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
+	"github.com/0uiYu/api-project/relaykit/dto"
+	kitutil "github.com/0uiYu/api-project/relaykit/relayconvert/kitutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

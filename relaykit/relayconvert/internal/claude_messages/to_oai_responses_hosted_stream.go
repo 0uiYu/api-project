@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	oaichat "github.com/QuantumNous/new-api/relaykit/relayconvert/internal/oai_chat"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
+	"github.com/0uiYu/api-project/relaykit/dto"
+	oaichat "github.com/0uiYu/api-project/relaykit/relayconvert/internal/oai_chat"
+	kitutil "github.com/0uiYu/api-project/relaykit/relayconvert/kitutil"
 )
 
 // ClaudeHostedStreamBridge keeps Anthropic server-executed tool blocks out of

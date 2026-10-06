@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/0uiYu/api-project/model"
+	"github.com/0uiYu/api-project/relaykit/dto"
 )
 
 const (

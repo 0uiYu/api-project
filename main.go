@@ -15,24 +15,24 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/controller"
-	"github.com/QuantumNous/new-api/i18n"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/middleware"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/oauth"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	perfmetrics "github.com/QuantumNous/new-api/pkg/perf_metrics"
-	"github.com/QuantumNous/new-api/pkg/wsmanager"
-	"github.com/QuantumNous/new-api/relay"
-	kitutil "github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
-	"github.com/QuantumNous/new-api/router"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/service/authz"
-	_ "github.com/QuantumNous/new-api/setting/performance_setting"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/constant"
+	"github.com/0uiYu/api-project/controller"
+	"github.com/0uiYu/api-project/i18n"
+	"github.com/0uiYu/api-project/logger"
+	"github.com/0uiYu/api-project/middleware"
+	"github.com/0uiYu/api-project/model"
+	"github.com/0uiYu/api-project/oauth"
+	"github.com/0uiYu/api-project/pkg/jsplugin"
+	perfmetrics "github.com/0uiYu/api-project/pkg/perf_metrics"
+	"github.com/0uiYu/api-project/pkg/wsmanager"
+	"github.com/0uiYu/api-project/relay"
+	kitutil "github.com/0uiYu/api-project/relaykit/relayconvert/kitutil"
+	"github.com/0uiYu/api-project/router"
+	"github.com/0uiYu/api-project/service"
+	"github.com/0uiYu/api-project/service/authz"
+	_ "github.com/0uiYu/api-project/setting/performance_setting"
+	"github.com/0uiYu/api-project/setting/ratio_setting"
 
 	"github.com/bytedance/gopkg/util/gopool"
 	"github.com/gin-gonic/gin"
@@ -259,7 +259,7 @@ func InjectUmamiAnalytics() {
 		analyticsInjectBuilder.WriteString(umamiSiteID)
 		analyticsInjectBuilder.WriteString("\"></script>")
 	}
-	analyticsInjectBuilder.WriteString("<!--Umami QuantumNous-->\n")
+	analyticsInjectBuilder.WriteString("<!--Umami-->\n")
 	analyticsInject := []byte(analyticsInjectBuilder.String())
 	placeholder := []byte("<!--umami-->\n")
 	indexPage = bytes.ReplaceAll(indexPage, placeholder, analyticsInject)
@@ -282,7 +282,7 @@ func InjectGoogleAnalytics() {
 		analyticsInjectBuilder.WriteString("');")
 		analyticsInjectBuilder.WriteString("</script>")
 	}
-	analyticsInjectBuilder.WriteString("<!--Google Analytics QuantumNous-->\n")
+	analyticsInjectBuilder.WriteString("<!--Google Analytics-->\n")
 	analyticsInject := []byte(analyticsInjectBuilder.String())
 	placeholder := []byte("<!--Google Analytics-->\n")
 	indexPage = bytes.ReplaceAll(indexPage, placeholder, analyticsInject)

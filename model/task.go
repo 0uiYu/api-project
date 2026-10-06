@@ -7,11 +7,11 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/pkg/billingexpr"
-	commonRelay "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/constant"
+	"github.com/0uiYu/api-project/pkg/billingexpr"
+	commonRelay "github.com/0uiYu/api-project/relay/common"
+	"github.com/0uiYu/api-project/relaykit/dto"
 )
 
 type TaskStatus string

@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/0uiYu/api-project/common"
+	relaycommon "github.com/0uiYu/api-project/relay/common"
+	"github.com/0uiYu/api-project/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

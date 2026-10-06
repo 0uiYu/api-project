@@ -7,13 +7,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/pkg/billingexpr"
-	"github.com/QuantumNous/new-api/pkg/jsplugin"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/setting/config"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/pkg/billingexpr"
+	"github.com/0uiYu/api-project/pkg/jsplugin"
+	relaycommon "github.com/0uiYu/api-project/relay/common"
+	"github.com/0uiYu/api-project/relaykit/dto"
+	"github.com/0uiYu/api-project/setting/config"
+	"github.com/0uiYu/api-project/setting/ratio_setting"
 	"github.com/samber/lo"
 )
 

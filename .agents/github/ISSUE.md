@@ -82,7 +82,6 @@ If any item fails, tell the user and **stop**. Do not create the issue.
 Search these yourself before filing. Do not send the user to "read the docs first". If this is usage, configuration, or integration: answer the user and do not file.
 
 - https://docs.newapi.ai/ — what was searched, conclusion:
-- https://deepwiki.com/QuantumNous/new-api — what was searched, conclusion:
 - README / repo docs:
 - Relevant code paths and conclusion:
 - Can the current version already do this? (required for feature requests):
@@ -166,7 +165,6 @@ Do not replace the fields below with unfiltered AI-generated text.
 ### Docs
 
 - https://docs.newapi.ai/ :
-- https://deepwiki.com/QuantumNous/new-api :
 - README / other repo docs:
 - Conclusions:
 

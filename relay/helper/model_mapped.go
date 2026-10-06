@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	rootcommon "github.com/QuantumNous/new-api/common"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	hostreasoning "github.com/QuantumNous/new-api/setting/reasoning"
+	rootcommon "github.com/0uiYu/api-project/common"
+	relaycommon "github.com/0uiYu/api-project/relay/common"
+	"github.com/0uiYu/api-project/relaykit/dto"
+	hostreasoning "github.com/0uiYu/api-project/setting/reasoning"
 	"github.com/gin-gonic/gin"
 )
 

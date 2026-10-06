@@ -17,7 +17,6 @@ body:
       description: GitHub markdown instructions are not included in the submitted issue. This section is written into the issue body. Do not delete or clear it.
       value: |
         - Docs: https://docs.newapi.ai/
-        - Usage questions first: https://deepwiki.com/QuantumNous/new-api
         - Do not report issues when pass-through is enabled; pass-through sends content as-is and does not go through new-api processing logic.
         - State facts and evidence concisely. Do not paste unfiltered AI-generated text in the issue body or in later comments.
         - Reports about Coding Plan services, reverse-engineered channels, third-party API wrappers, or compatibility issues caused by exposing a Codex endpoint through a reverse proxy as a general-purpose API are not accepted. Protocols or behavior specific to the Codex API should not be treated as standard OpenAI API behavior; confirm such issues with the channel or API provider first.
@@ -39,7 +38,7 @@ body:
     attributes:
       label: Submission Checks
       options:
-        - label: "**Non-duplicate issue:** I have searched existing [Issues](https://github.com/QuantumNous/new-api/issues?q=is%3Aissue) and confirmed there are no similar issues."
+        - label: "**Non-duplicate issue:** I have searched existing [Issues](https://github.com/0uiYu/api-project/issues?q=is%3Aissue) and confirmed there are no similar issues."
           required: true
         - label: "**Read this first:** I have fully read the section above, reviewed the docs at https://docs.newapi.ai/ and the project README, and asked AI first, confirming this is not a usage, configuration, or integration question, and that the current version cannot meet my needs."
           required: true

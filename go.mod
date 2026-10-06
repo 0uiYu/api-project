@@ -1,4 +1,4 @@
-module github.com/QuantumNous/new-api
+module github.com/0uiYu/api-project
 
 // +heroku goVersion go1.18
 go 1.25.1
@@ -168,7 +168,7 @@ require (
 require (
 	github.com/Calcium-Ion/moejs v0.1.0-alpha.5
 	github.com/ClickHouse/clickhouse-go/v2 v2.46.0
-	github.com/QuantumNous/new-api/relaykit v0.0.0
+	github.com/0uiYu/api-project/relaykit v0.0.0
 )
 
-replace github.com/QuantumNous/new-api/relaykit => ./relaykit
+replace github.com/0uiYu/api-project/relaykit => ./relaykit

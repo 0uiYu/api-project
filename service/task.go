@@ -3,7 +3,7 @@ package service
 import (
 	"strings"
 
-	"github.com/QuantumNous/new-api/constant"
+	"github.com/0uiYu/api-project/constant"
 )
 
 func CoverTaskActionToModelName(platform constant.TaskPlatform, action string) string {

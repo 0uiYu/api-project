@@ -5,9 +5,9 @@ import (
 	"errors"
 	"io"
 
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/setting/system_setting"
-	"github.com/QuantumNous/new-api/types"
+	"github.com/0uiYu/api-project/model"
+	"github.com/0uiYu/api-project/setting/system_setting"
+	"github.com/0uiYu/api-project/types"
 	"github.com/gin-gonic/gin"
 )
 

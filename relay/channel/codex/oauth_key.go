@@ -3,7 +3,7 @@ package codex
 import (
 	"errors"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/0uiYu/api-project/common"
 )
 
 type OAuthKey struct {

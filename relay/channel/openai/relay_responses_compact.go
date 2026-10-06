@@ -4,10 +4,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/types"
-	"github.com/QuantumNous/new-api/service"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/relaykit/dto"
+	"github.com/0uiYu/api-project/relaykit/types"
+	"github.com/0uiYu/api-project/service"
 
 	"github.com/gin-gonic/gin"
 )

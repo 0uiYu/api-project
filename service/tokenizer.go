@@ -3,7 +3,7 @@ package service
 import (
 	"sync"
 
-	"github.com/QuantumNous/new-api/common"
+	"github.com/0uiYu/api-project/common"
 	"github.com/tiktoken-go/tokenizer"
 	"github.com/tiktoken-go/tokenizer/codec"
 )

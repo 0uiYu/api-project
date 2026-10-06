@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"maps"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/logger"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/logger"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/gorm"

@@ -3,7 +3,7 @@ package oauth
 import (
 	"testing"
 
-	"github.com/QuantumNous/new-api/setting/system_setting"
+	"github.com/0uiYu/api-project/setting/system_setting"
 	"github.com/stretchr/testify/assert"
 )
 

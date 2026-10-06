@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/model"
 )
 
 var (

@@ -18,8 +18,8 @@ import (
 	"unsafe"
 	"weak"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert/kitutil"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/relaykit/relayconvert/kitutil"
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/assert"

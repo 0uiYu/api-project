@@ -16,8 +16,8 @@ import (
 	"time"
 
 	"github.com/Calcium-Ion/moejs"
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/logger"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/logger"
 )
 
 const (

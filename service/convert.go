@@ -1,9 +1,9 @@
 package service
 
 import (
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relaykit/dto"
-	"github.com/QuantumNous/new-api/relaykit/relayconvert"
+	relaycommon "github.com/0uiYu/api-project/relay/common"
+	"github.com/0uiYu/api-project/relaykit/dto"
+	"github.com/0uiYu/api-project/relaykit/relayconvert"
 )
 
 func NormalizeCacheCreationSplit(totalTokens int, tokens5m int, tokens1h int) (int, int) {

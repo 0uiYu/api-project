@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/relaykit/dto"
+	"github.com/0uiYu/api-project/logger"
+	"github.com/0uiYu/api-project/relaykit/dto"
 )
 
 // HTTPTransportPolicy is the runtime-normalized outbound HTTP transport policy

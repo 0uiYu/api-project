@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	pluginruntime "github.com/QuantumNous/new-api/pkg/jsplugin"
-	"github.com/QuantumNous/new-api/relay/helper"
+	"github.com/0uiYu/api-project/common"
+	"github.com/0uiYu/api-project/constant"
+	pluginruntime "github.com/0uiYu/api-project/pkg/jsplugin"
+	"github.com/0uiYu/api-project/relay/helper"
 )
 
 // readSubmitEvents owns only SSE framing and bounded JSON state. The plugin
