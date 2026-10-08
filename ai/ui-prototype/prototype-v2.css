@@ -1,0 +1,259 @@
+/* V2 only. V1 pages keep prototype.css unchanged. */
+
+.v2-sheet { background: #f5f6f8; }
+
+.v2-sheet > .header { background: #fff; }
+
+.v2-overview {
+  background: #f5f6f8;
+  padding: 16px 22px 16px;
+  gap: 14px;
+}
+
+.v2-overview .page-head {
+  margin-bottom: 2px;
+}
+
+.v2-surface {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.v2-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-color: #dcdfe6;
+}
+
+.v2-metrics .metric {
+  min-height: 146px;
+  padding: 24px 26px 22px;
+}
+
+.v2-metrics .metric + .metric { border-left-color: #e6e8ee; }
+
+.v2-metrics .metric-label {
+  font-size: 13px;
+  color: #5c6573;
+}
+
+.v2-metrics .metric-value {
+  margin-top: 8px;
+  font-size: 34px;
+  letter-spacing: -0.035em;
+}
+
+.v2-metrics .metric-sub {
+  margin-top: 6px;
+  font-size: 12.5px;
+}
+
+.v2-metrics .spark {
+  width: 132px;
+  height: 40px;
+}
+
+.v2-operate { padding: 4px 8px 2px; }
+
+.v2-setup-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 10px 10px 0;
+}
+
+.v2-setup-head h2 {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.v2-setup-list {
+  margin: 6px 0 0;
+  padding: 0 6px;
+  list-style: none;
+}
+
+.v2-setup-list li {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+
+.v2-setup-list .step-title {
+  font-size: 13px;
+  font-weight: 500;
+  width: 132px;
+  flex: none;
+}
+
+.v2-setup-list .step-desc {
+  margin: 0;
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--text-tertiary);
+}
+
+.v2-setup-list .check {
+  width: 14px;
+  height: 14px;
+}
+
+.v2-setup-list li.is-done .check { border-color: #b7dfc8; }
+
+.v2-setup-list .check .ico {
+  width: 10px;
+  height: 10px;
+}
+
+.v2-reco {
+  margin: 6px 6px 6px;
+  padding-top: 4px;
+  border-top: 1px solid var(--row);
+}
+
+.v2-reco .section-label { margin: 8px 4px 0; }
+
+.v2-reco .section-label h2 {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.v2-reco .reco-list { border-top: 0; }
+
+.v2-reco .reco-row {
+  min-height: 36px;
+  grid-template-columns: 132px 1fr 16px;
+  padding: 0 4px;
+}
+
+.v2-ref { padding: 14px 18px 12px; }
+
+.v2-ref-top {
+  display: grid;
+  grid-template-columns: 1.5fr 160px;
+  gap: 24px;
+  align-items: start;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--row);
+}
+
+.v2-ref .quiet-head { margin-bottom: 4px; }
+
+.v2-ref .announce p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.v2-uptime-val {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.v2-uptime .muted { display: block; margin-top: 2px; }
+
+.v2-ref-body {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 28px;
+  padding-top: 12px;
+}
+
+.v2-ref .route { min-height: 34px; }
+
+.v2-ref .faq-row {
+  min-height: 30px;
+  justify-content: flex-start;
+  gap: 8px;
+  color: #3c4250;
+}
+
+.v2-ref .faq-row .ico { margin-left: auto; }
+
+.v2-keys .page-head {
+  margin-bottom: 14px;
+}
+
+.v2-keys .toolbar {
+  margin: 0 -28px;
+  padding: 10px 28px;
+  background: #f3f4f6;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.v2-keys .table-wrap { border-top: 0; }
+
+.v2-keys th {
+  background: #fff;
+  color: #4a5160;
+  font-weight: 600;
+  border-bottom: 1px solid #d5dae3;
+}
+
+.v2-keys .pager {
+  background: #f3f4f6;
+  border-top: 1px solid var(--border);
+}
+
+.v2-login-brand {
+  align-items: stretch;
+  padding: 0;
+}
+
+.v2-login-inner {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 88px;
+}
+
+.v2-login-copy { max-width: 380px; }
+
+.v2-api {
+  margin-top: 72px;
+  max-width: 340px;
+  padding: 2px 0 2px 16px;
+  border-left: 2px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v2-api-method,
+.v2-api-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+
+.v2-api-method .verb {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.v2-api-method .path { color: #3c4250; }
+
+.v2-api-line .k {
+  width: 52px;
+  flex: none;
+  color: var(--text-tertiary);
+}
+
+.v2-api-line .v { color: var(--text); }
