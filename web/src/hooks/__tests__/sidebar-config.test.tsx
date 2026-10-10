@@ -3,11 +3,7 @@ import { cleanup, renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { checkIsActive } from '@/components/layout/lib/url-utils'
-import {
-  parseSidebarModulesAdmin,
-  serializeSidebarModulesAdmin,
-} from '@/features/system-settings/maintenance/config'
+import { parseSidebarModulesAdmin } from '@/features/system-settings/maintenance/config'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { useSidebarConfig } from '../use-sidebar-config'
@@ -102,15 +98,47 @@ describe('security sidebar visibility', () => {
   })
 })
 
-describe('audit log sidebar entry', () => {
-  it('admin settings default Audit Logs to visible and preserve its independent toggle when saved', () => {
+describe('console sidebar business path', () => {
+  const removedTitles = [
+    'Chat',
+    'Audit Logs',
+    'Task Logs',
+    'Redemption Codes',
+    'Subscriptions',
+    'System Info',
+    'Task Plugins',
+    'Dashboard',
+  ]
+
+  it('shows overview, keys, playground, usage, and account entries', () => {
+    const { result } = sidebarFor()
+    const titles = result.current
+      .flatMap((group) => group.items)
+      .map((item) => item.title)
+    expect(titles).toEqual([
+      'Overview',
+      'API Keys',
+      'Playground',
+      'Usage Logs',
+      'Wallet',
+      'Profile',
+      'Security & Access',
+      'Channels',
+      'Models',
+      'Users',
+      'System Settings',
+    ])
+    for (const title of removedTitles) {
+      expect(titles).not.toContain(title)
+    }
+  })
+
+  it('keeps the saved audit flag without putting Audit Logs in the menu', () => {
     const config = parseSidebarModulesAdmin(
       '{"console":{"enabled":true,"log":true}}'
     )
     expect(config.console.audit).toBe(true)
-    config.console.audit = false
-    const saved = parseSidebarModulesAdmin(serializeSidebarModulesAdmin(config))
-    const { result } = sidebarFor(saved)
+    const { result } = sidebarFor(config)
     const titles = result.current
       .flatMap((group) => group.items)
       .map((item) => item.title)
@@ -118,47 +146,13 @@ describe('audit log sidebar entry', () => {
     expect(titles).toContain('Usage Logs')
   })
 
-  it('legacy configurations show a separate Audit Logs link immediately after Usage Logs', () => {
-    const { result } = sidebarFor(
-      { console: { enabled: true, log: true } },
-      { console: { enabled: true, log: true } }
-    )
-    const items =
-      result.current.find((group) => group.id === 'general')?.items ?? []
-    const usageIndex = items.findIndex((item) => item.title === 'Usage Logs')
-    expect(items[usageIndex + 1]).toMatchObject({
-      title: 'Audit Logs',
-      url: '/usage-logs/audit',
-    })
-    const selected = items.filter((item) =>
-      checkIsActive('/usage-logs/audit', item)
-    )
-    expect(selected.map((item) => item.title)).toEqual(['Audit Logs'])
-  })
-
-  it.each([
-    [{ console: { enabled: true, audit: false } }, undefined],
-    [{ console: { enabled: false } }, { console: { audit: true } }],
-    [undefined, { console: { enabled: true, audit: false } }],
-    [undefined, { console: { enabled: false } }],
-  ])(
-    'admin and personal visibility rules can hide Audit Logs (%j, %j)',
-    (admin, user) => {
-      const { result } = sidebarFor(admin, user)
-      expect(
-        result.current
-          .flatMap((group) => group.items)
-          .some((item) => item.title === 'Audit Logs')
-      ).toBe(false)
-    }
-  )
-
-  it('hiding Usage Logs does not hide the independently configured Audit Logs entry', () => {
+  it('hiding Usage Logs leaves the rest of the business path', () => {
     const { result } = sidebarFor({ console: { enabled: true, log: false } })
     const titles = result.current
       .flatMap((group) => group.items)
       .map((item) => item.title)
     expect(titles).not.toContain('Usage Logs')
-    expect(titles).toContain('Audit Logs')
+    expect(titles).toContain('API Keys')
+    expect(titles).not.toContain('Audit Logs')
   })
 })

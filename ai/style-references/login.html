@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>Sable · 登录</title>
+  <link rel="stylesheet" href="sable.css" />
+</head>
+<body>
+  <main class="login">
+    <section class="login-copy">
+      <div class="word">SABLE</div>
+      <div>
+        <h1>一个地址，调用你接入的模型。</h1>
+        <p class="lead">密钥、价格和用量放在同一处。调用方式保持 OpenAI 兼容。</p>
+      </div>
+      <div class="snippet">
+        <div>POST /v1/chat/completions</div>
+        <div><span class="dim">model</span>　claude-sonnet-4-5</div>
+        <div><span class="dim">group</span>　default</div>
+      </div>
+    </section>
+    <section class="login-form">
+      <p class="kicker">账户</p>
+      <h1 style="font-size:36px;margin-bottom:28px">登录</h1>
+      <div class="field">
+        <label>用户名或邮箱</label>
+        <input value="you@studio.dev" />
+      </div>
+      <div class="field">
+        <div class="field-row"><span>密码</span><a href="#">忘记密码</a></div>
+        <input type="password" value="password" />
+      </div>
+      <button class="primary">登录</button>
+      <div class="alt">或使用 <a href="#">GitHub</a> 继续</div>
+      <p class="foot">还没有账户？<a href="#">注册</a><br />登录即表示同意用户协议和隐私政策。</p>
+    </section>
+  </main>
+</body>
+</html>

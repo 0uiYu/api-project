@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>Sable · 首页</title>
+  <link rel="stylesheet" href="sable.css" />
+  <style>
+    html, body { width: 1440px; height: 1120px; overflow: hidden; }
+    .site { width: 1440px; height: 1120px; display: flex; flex-direction: column; }
+    .bar {
+      height: 72px;
+      padding: 0 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+    .bar-links { display: flex; align-items: center; gap: 22px; color: var(--muted); }
+    .bar-links a { color: var(--muted); }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 64px;
+      padding: 72px 48px 56px;
+      align-items: end;
+    }
+    .hero h1 { font-size: 64px; line-height: 0.98; max-width: 680px; font-weight: 540; }
+    .hero .lead { margin: 20px 0 0; max-width: 460px; color: var(--muted); font-size: 18px; line-height: 1.5; }
+    .actions { display: flex; gap: 12px; margin-top: 32px; }
+    .actions .primary, .actions .ghost { height: 44px; padding: 0 18px; }
+    .panel {
+      border-left: 2px solid var(--amber);
+      padding: 8px 0 8px 22px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.85;
+    }
+    .panel .label { color: var(--amber); letter-spacing: 0.08em; font-size: 12px; }
+    .steps {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .step { padding: 28px 48px 32px; }
+    .step + .step { border-left: 1px solid var(--line); }
+    .step .n { font-family: var(--mono); color: var(--amber); font-size: 12px; letter-spacing: 0.08em; }
+    .step h2 { margin: 10px 0 8px; font-size: 22px; font-weight: 560; letter-spacing: -0.03em; }
+    .step p { margin: 0; color: var(--muted); line-height: 1.55; max-width: 320px; }
+    .prices { padding: 36px 48px 0; }
+    .prices .top { margin-bottom: 8px; }
+    .prices h1 { font-size: 28px; }
+    .price-head, .price-row {
+      display: grid;
+      grid-template-columns: 1.4fr 140px 140px 100px;
+      gap: 16px;
+      align-items: center;
+      min-height: 46px;
+      border-top: 1px solid var(--line);
+    }
+    .price-head { min-height: 36px; color: var(--faint); font-size: 12px; }
+    .footbar {
+      margin-top: auto;
+      height: 64px;
+      padding: 0 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 12px;
+    }
+    .footbar a { color: var(--faint); margin-right: 18px; }
+  </style>
+</head>
+<body>
+  <div class="site">
+    <header class="bar">
+      <div class="word">SABLE</div>
+      <nav class="bar-links">
+        <a href="models.html">模型</a>
+        <a href="login.html">登录</a>
+        <a class="primary" href="login.html" style="display:inline-grid;place-items:center;color:var(--amber-ink)">注册</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="kicker">Gateway</p>
+        <h1>一个地址，调用你接入的模型。</h1>
+        <p class="lead">兼容 OpenAI 接口。密钥、价格和用量都在这一处，客户端只改 base_url。</p>
+        <div class="actions">
+          <a class="primary" href="login.html" style="display:inline-grid;place-items:center;color:var(--amber-ink)">创建账户</a>
+          <a class="ghost" href="models.html" style="display:inline-grid;place-items:center">查看模型</a>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="label">BASE_URL</div>
+        <div>https://api.example.com/v1</div>
+        <div style="height:16px"></div>
+        <div>POST /v1/chat/completions</div>
+        <div><span class="faint">Authorization</span>　Bearer sk-sable-••••</div>
+        <div><span class="faint">model</span>　claude-sonnet-4-5</div>
+      </div>
+    </section>
+
+    <section class="steps">
+      <article class="step">
+        <div class="n">01</div>
+        <h2>拿一把密钥</h2>
+        <p>给每个应用单独一把。停用时，其他调用不受影响。</p>
+      </article>
+      <article class="step">
+        <div class="n">02</div>
+        <h2>改一个地址</h2>
+        <p>把客户端的 base_url 指到这里。模型名保持原样。</p>
+      </article>
+      <article class="step">
+        <div class="n">03</div>
+        <h2>看每一次调用</h2>
+        <p>用量里能看到模型、密钥、状态和延迟。</p>
+      </article>
+    </section>
+
+    <section class="prices">
+      <header class="top">
+        <div>
+          <p class="kicker">Pricing</p>
+          <h1>现在可以调用</h1>
+        </div>
+        <a href="models.html">全部模型</a>
+      </header>
+      <div class="price-head"><span>模型</span><span>输入 / 百万</span><span>输出 / 百万</span><span>状态</span></div>
+      <div class="price-row"><span class="mono">claude-sonnet-4-5</span><span class="mono">$3.00</span><span class="mono">$15.00</span><span class="ok">可用</span></div>
+      <div class="price-row"><span class="mono">gpt-4.1</span><span class="mono">$2.00</span><span class="mono">$8.00</span><span class="ok">可用</span></div>
+      <div class="price-row"><span class="mono">gpt-4.1-mini</span><span class="mono">$0.40</span><span class="mono">$1.60</span><span class="ok">可用</span></div>
+      <div class="price-row"><span class="mono">gemini-2.5-pro</span><span class="mono">$1.25</span><span class="mono">$10.00</span><span class="ok">可用</span></div>
+    </section>
+
+    <footer class="footbar">
+      <span>Sable</span>
+      <span><a href="#">用户协议</a><a href="#">隐私政策</a></span>
+    </footer>
+  </div>
+</body>
+</html>

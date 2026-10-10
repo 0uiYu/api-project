@@ -74,10 +74,6 @@ export function SidebarModulesSection({
         title: t('Playground'),
         description: t('Experiment with prompts and models in real time.'),
       },
-      chat: {
-        title: t('Chat'),
-        description: t('Access previous conversations and start new ones.'),
-      },
     },
     console: {
       detail: {
@@ -91,18 +87,6 @@ export function SidebarModulesSection({
       log: {
         title: t('Usage logs'),
         description: t('Detailed request logs for investigations.'),
-      },
-      audit: {
-        title: t('Audit Logs'),
-        description: t('Login, security and access records'),
-      },
-      midjourney: {
-        title: t('Drawing logs'),
-        description: t('History of MjProxy-style image tasks.'),
-      },
-      task: {
-        title: t('Task logs'),
-        description: t('Background job tracker for queued work.'),
       },
     },
     personal: {
@@ -128,10 +112,6 @@ export function SidebarModulesSection({
         title: t('Models'),
         description: t('Manage catalog visibility and pricing.'),
       },
-      redemption: {
-        title: t('Redeem codes'),
-        description: t('Create and review invite or credit codes.'),
-      },
       user: {
         title: t('Users'),
         description: t('Administer user accounts and roles.'),
@@ -139,10 +119,6 @@ export function SidebarModulesSection({
       setting: {
         title: t('System settings'),
         description: t('Advanced platform configuration.'),
-      },
-      subscription: {
-        title: t('Subscription Management'),
-        description: t('Manage subscription plans and pricing.'),
       },
     },
   }
@@ -191,7 +167,9 @@ export function SidebarModulesSection({
               description: t('Custom sidebar section'),
             }
             const modules = Object.entries(sectionConfig).filter(
-              ([moduleKey]) => moduleKey !== 'enabled'
+              ([moduleKey]) =>
+                moduleKey !== 'enabled' &&
+                moduleMeta[sectionKey]?.[moduleKey] !== undefined
             )
 
             return (
