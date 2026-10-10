@@ -46,14 +46,14 @@ async function renderHome(isAuthenticated: boolean) {
 }
 
 describe('platform home', () => {
-  it('explains one address and the call steps for a signed-out visitor', async () => {
+  it('renders only the gateway entry for a signed-out visitor', async () => {
     await renderHome(false)
 
     const title = screen.getByRole('heading', { level: 1 })
     expect(title).toHaveTextContent(
       'Connect to quality models worldwide through a Stable API platform'
     )
-    expect(title.querySelector('.text-\\[\\#2563EB\\]')).toHaveTextContent(
+    expect(title.querySelector('.text-\\[\\#1E3A8A\\]')).toHaveTextContent(
       'Stable API'
     )
     expect(
@@ -65,157 +65,135 @@ describe('platform home', () => {
       )
     ).toBeInTheDocument()
     expect(screen.getAllByText('Northline')).toHaveLength(2)
-    expect(document.querySelector('img[src="/stable-logo.png"]')).toHaveAttribute(
-      'alt',
-      ''
-    )
-    expect(screen.getByText('API address placeholder')).toBeInTheDocument()
-    expect(screen.getByText('-X POST')).toBeInTheDocument()
-    expect(screen.getByText('/chat/completions')).toBeInTheDocument()
-    expect(screen.getByText('API call example')).toBeInTheDocument()
-    expect(screen.queryByText(/200|response time/i)).not.toBeInTheDocument()
-    const example = screen.getByText('-X POST').closest('pre')
-    expect(example?.parentElement?.className).toContain('max-w-[540px]')
-    expect(
-      screen.queryByRole('heading', { name: 'Register an account' })
-    ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Get an API key' })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Set the API address' })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: 'Start calling the API' })
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByText('Create a Northline account and open the platform.')
-    ).not.toBeInTheDocument()
-    expect(screen.getByText('01')).toBeInTheDocument()
-    expect(screen.getByText('02')).toBeInTheDocument()
-    expect(screen.getByText('03')).toBeInTheDocument()
-    expect(screen.queryByText('04')).not.toBeInTheDocument()
-    expect(screen.getByText('Create a key in the console.')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Set the request address and model parameters from the docs.'
-      )
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText('Connect the API to your own application.')
-    ).toBeInTheDocument()
-    const steps = screen
-      .getByRole('heading', { name: 'Get an API key' })
-      .closest('ol')
-    if (!(steps instanceof HTMLOListElement)) {
-      throw new Error('missing steps')
-    }
-    expect(steps.className).toContain('lg:grid-cols-3')
-    expect(steps.className).toContain('sm:grid-cols-2')
-    expect(
-      title.compareDocumentPosition(steps) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
-    expect(steps.children).toHaveLength(3)
-    expect(screen.getByRole('link', { name: 'Model list' })).toHaveAttribute(
-      'href',
-      '/pricing'
-    )
-    expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute(
-      'href',
-      '/about'
-    )
-    expect(
-      screen.getByRole('button', { name: 'Copy to clipboard' })
-    ).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Programmers' })).not.toBeInTheDocument()
-    expect(screen.queryByText('New API')).not.toBeInTheDocument()
-    expect(screen.queryByText(/localhost|5173|3000/)).not.toBeInTheDocument()
-    expect(
-      screen.queryByText(/Cherry Studio|Channels/)
-    ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Change language' })
-    ).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Sign in' })).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Create your account' })
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Start now' })
-    ).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'View models' })).toHaveAttribute(
-      'href',
-      '/pricing'
-    )
-    const consoleButton = screen.getByRole('button', { name: 'Console' })
-    expect(consoleButton).toHaveAttribute('href', '/dashboard')
-    expect(consoleButton.className).toContain('hover:bg-[#1D4ED8]!')
+
     const enterConsole = screen.getByRole('button', {
       name: 'Enter the console',
     })
     expect(enterConsole).toHaveAttribute('href', '/dashboard')
+    expect(enterConsole.className).toContain('bg-[#2563EB]')
     expect(enterConsole.className).toContain('hover:bg-[#1D4ED8]!')
-  })
 
-  it('shows model cards under the hero without the figure row', async () => {
-    await renderHome(false)
-
-    const title = screen.getByRole('heading', { level: 1 })
-    const steps = screen.getByRole('heading', { name: 'Get an API key' })
-    const modelList = screen
-      .getByRole('link', { name: 'Claude Anthropic' })
-      .closest('ul')
-    expect(screen.queryByText('Major model providers')).not.toBeInTheDocument()
-    expect(screen.queryByText('One key for every call')).not.toBeInTheDocument()
-    expect(screen.queryByText('No code changes')).not.toBeInTheDocument()
-    expect(modelList?.className).toContain('grid-cols-2')
-    expect(modelList?.className).toContain('lg:grid-cols-4')
+    // The address is the only hard fact the page carries, so it stays visible
+    // and copyable without opening the console.
+    expect(screen.getByText('API address placeholder')).toBeInTheDocument()
     expect(
-      title.compareDocumentPosition(modelList as Node) &
-        Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
-    expect(
-      (modelList as Node).compareDocumentPosition(steps) &
-        Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy()
-    for (const name of [
-      'Claude Anthropic',
-      'GPT OpenAI',
-      'Gemini Google',
-      'Grok xAI',
-    ]) {
-      const card = screen.getByRole('link', { name })
-      expect(card).toHaveAttribute('href', '/models')
-      expect(card.className).toContain('rounded-lg')
-      expect(card.className).toContain('items-center')
-      expect(card.className).toContain('border-[#E7ECF3]')
-      const mark = card.querySelector('svg')
-      expect(mark).toHaveAttribute('viewBox', '0 0 24 24')
-      expect(mark?.getAttribute('class')).toContain('size-10')
-      expect(mark?.innerHTML).toContain('#0F172A')
-    }
-  })
+      screen.getByRole('button', { name: 'Copy to clipboard' })
+    ).toBeInTheDocument()
 
-  it('sends a signed-in user to the console', async () => {
-    await renderHome(true)
-
+    expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute(
+      'href',
+      '/about'
+    )
     expect(screen.getByRole('button', { name: 'Console' })).toHaveAttribute(
       'href',
       '/dashboard'
     )
     expect(
+      screen.getByRole('button', { name: 'Change language' })
+    ).toBeInTheDocument()
+  })
+
+  it('drops the decorative model strip, the step cards and the example terminal', async () => {
+    await renderHome(false)
+
+    expect(screen.queryByText('Claude')).not.toBeInTheDocument()
+    expect(screen.queryByText('Gpt')).not.toBeInTheDocument()
+    expect(screen.queryByText('Gemini')).not.toBeInTheDocument()
+    expect(screen.queryByText('Grok')).not.toBeInTheDocument()
+    expect(screen.queryByText('API call example')).not.toBeInTheDocument()
+    expect(screen.queryByText('-X POST')).not.toBeInTheDocument()
+    expect(screen.queryByText('Get an API key')).not.toBeInTheDocument()
+    expect(screen.queryByText('Start calling the API')).not.toBeInTheDocument()
+    expect(screen.queryByText('01')).not.toBeInTheDocument()
+
+    // No model-list entry point and no second hero CTA either.
+    expect(screen.queryByRole('link', { name: 'Model list' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'View models' })
+    ).not.toBeInTheDocument()
+    expect(document.querySelectorAll('a[href="/pricing"]')).toHaveLength(0)
+  })
+
+  it('centers the hero column and puts the address directly under the CTA', async () => {
+    await renderHome(false)
+
+    const title = screen.getByRole('heading', { level: 1 })
+    const hero = title.closest('section')
+    expect(hero?.className).toContain('items-center')
+    expect(hero?.className).toContain('text-center')
+    // The hero claims a share of the viewport so a tall screen doesn't collapse
+    // into one blank band between the copy and the pinned footer.
+    expect(hero?.className).toContain('--home-vh')
+    expect(hero?.className).toContain('justify-center')
+    // The page height is measured in JS rather than trusting viewport units:
+    // Edge resolved 100svh taller than the visible area and left a blank strip.
+    expect(
+      title.closest('main')?.parentElement?.className
+    ).toContain('min-h-[var(--home-vh,100svh)]')
+    // The short page centers itself in the viewport instead of leaving a hole
+    // above the pinned footer.
+    expect(title.closest('main')?.className).toContain('justify-center')
+
+    const cta = screen.getByRole('button', { name: 'Enter the console' })
+    const address = screen.getByText('API address placeholder')
+    expect(
+      cta.compareDocumentPosition(address) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
+
+  it('keeps the ice-blue backdrop decorative and the hero surfaces glassy', async () => {
+    await renderHome(false)
+
+    const backdrop = document.querySelector('.home-backdrop')
+    expect(backdrop).toHaveAttribute('aria-hidden')
+    for (const layer of [
+      '.home-grid',
+      '.home-glow-a',
+      '.home-glow-b',
+      '.home-frame',
+    ]) {
+      expect(backdrop?.querySelector(layer)).not.toBeNull()
+    }
+    // The swept highlight was removed: two slow glows plus the grid carry the
+    // depth, and a third moving layer read as a smear on white.
+    expect(backdrop?.querySelector('.home-sheen')).toBeNull()
+
+    const badge = screen.getByText('Models on this site share one address')
+    expect(badge.className).toContain('backdrop-blur-md')
+    expect(badge.className).toContain('bg-white/70')
+    expect(badge.className).toContain('border-[#DCE7F7]')
+    // Technical label treatment: monospace plus wide tracking, no copy change.
+    expect(badge.className).toContain('font-mono')
+    expect(badge.className).toContain('tracking-[0.14em]')
+
+    const chip = screen.getByText('API address placeholder').parentElement
+    expect(chip?.className).toContain('backdrop-blur-md')
+    expect(chip?.className).toContain('bg-white/70')
+    expect(chip?.className).toContain('border-[#D7E4F7]')
+
+    // The CTA stays the single solid brand-blue action, now with a soft halo.
+    const cta = screen.getByRole('button', { name: 'Enter the console' })
+    expect(cta.className).toContain('bg-[#2563EB]')
+    expect(cta.className).toContain('hover:bg-[#1D4ED8]!')
+    expect(cta.className).toContain('hover:-translate-y-px')
+    expect(cta.className).toContain('0_18px_38px_-16px_rgba(37,99,235,0.65)')
+  })
+
+  it('sends a signed-in user to the console', async () => {
+    await renderHome(true)
+
+    expect(
       screen.getByRole('button', { name: 'Enter the console' })
     ).toHaveAttribute('href', '/dashboard')
-    expect(
-      screen.queryByRole('button', { name: 'Create your account' })
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'Start now' })
-    ).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Console' })).toHaveAttribute(
+      'href',
+      '/dashboard'
+    )
   })
 
   it('uses the brand name when the site name is still the default', async () => {
-    useSystemConfigStore.getState().setConfig({ systemName: 'New API' })
+    useSystemConfigStore.getState().setConfig({ systemName: 'Stable API' })
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     })
@@ -237,15 +215,14 @@ describe('platform home', () => {
       '/stable-logo.png'
     )
     expect(screen.getAllByText('Stable')).toHaveLength(1)
-    expect(
-      screen.queryByText('Create a Stable account and open the platform.')
-    ).not.toBeInTheDocument()
+    // The raw default name never renders as text here; the headline's
+    // "Stable API" highlight is a separate copy string.
     expect(screen.queryByText('New API')).not.toBeInTheDocument()
   })
 
   it('uses an uploaded logo and still shows the brand name', async () => {
     useSystemConfigStore.getState().setConfig({
-      systemName: 'New API',
+      systemName: 'Stable API',
       logo: '/custom-mark.png',
     })
     useSystemConfigStore.getState().setLoadedLogoUrl('/custom-mark.png')

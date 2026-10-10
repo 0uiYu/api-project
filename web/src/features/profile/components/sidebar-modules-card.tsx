@@ -40,18 +40,6 @@ export function SidebarModulesCard() {
 
   const sectionDefs: SectionDef[] = [
     {
-      key: 'chat',
-      title: t('Playground'),
-      description: t('AI model testing environment'),
-      modules: [
-        {
-          key: 'playground',
-          title: t('Playground'),
-          description: t('AI model testing environment'),
-        },
-      ],
-    },
-    {
       key: 'console',
       title: t('Console Area'),
       description: t('Data management and log viewing'),
@@ -68,7 +56,7 @@ export function SidebarModulesCard() {
         },
         {
           key: 'log',
-          title: t('Usage Logs'),
+          title: t('Usage Records'),
           description: t('API usage records'),
         },
       ],

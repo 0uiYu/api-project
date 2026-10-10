@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TitledCard } from '@/components/ui/titled-card'
+import { ProfileHeader } from '@/features/profile/components/profile-header'
 import { useProfile } from '@/features/profile/hooks/use-profile'
 
 import { AccessTokensCard } from './components/access-tokens-card'
@@ -124,7 +125,12 @@ export function Security() {
         {t('Security & Access')}
       </SectionPageLayout.Title>
       <SectionPageLayout.Content>
-        <div className='mx-auto w-full max-w-7xl'>{content}</div>
+        <div className='mx-auto w-full max-w-7xl space-y-4 sm:space-y-5'>
+          {/* Moved here from the profile page: identity summary stays visible
+              above the account-security cards. */}
+          <ProfileHeader profile={profile} loading={loading} />
+          {content}
+        </div>
       </SectionPageLayout.Content>
     </SectionPageLayout>
   )

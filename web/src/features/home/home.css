@@ -1,0 +1,139 @@
+/* Landing page (public home) background layers.
+   Scoped to the home feature: nothing here reaches the console UI.
+   Entrance motion is delegated to <AnimateInView>, which reuses the
+   .landing-animate-* utilities defined in styles/index.css. */
+
+.home-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Blueprint grid with a major/minor line hierarchy: every fourth line is
+   stronger, the way a technical drawing reads. The mask hollows out the middle
+   so the headline and copy keep a clean white field. */
+.home-grid {
+  --home-grid-mask: radial-gradient(
+    ellipse 66% 50% at 50% 34%,
+    transparent 0%,
+    transparent 32%,
+    #000 92%
+  );
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(37, 99, 235, 0.085) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 99, 235, 0.085) 1px, transparent 1px),
+    linear-gradient(to right, rgba(37, 99, 235, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 99, 235, 0.05) 1px, transparent 1px);
+  background-size: 224px 224px, 224px 224px, 56px 56px, 56px 56px;
+  -webkit-mask-image: var(--home-grid-mask);
+  mask-image: var(--home-grid-mask);
+}
+
+@media (max-width: 640px) {
+  .home-grid {
+    background-image:
+      linear-gradient(to right, rgba(37, 99, 235, 0.075) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(37, 99, 235, 0.075) 1px, transparent 1px),
+      linear-gradient(to right, rgba(37, 99, 235, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(37, 99, 235, 0.045) 1px, transparent 1px);
+    background-size: 160px 160px, 160px 160px, 40px 40px, 40px 40px;
+  }
+}
+
+/* Two vertical hairlines that frame the content column, faded at both ends:
+   the page reads as a framed drawing instead of an empty white field. */
+.home-frame {
+  position: absolute;
+  left: 50%;
+  top: 4%;
+  bottom: 4%;
+  width: min(1240px, calc(100% - 2.5rem));
+  transform: translateX(-50%);
+  border-inline: 1px solid rgba(37, 99, 235, 0.1);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 16%,
+    #000 84%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 16%,
+    #000 84%,
+    transparent
+  );
+}
+
+/* Two ice-blue glows that drift very slowly behind the hero copy. */
+.home-glow {
+  position: absolute;
+  border-radius: 9999px;
+}
+
+.home-glow-a {
+  top: -6%;
+  left: 6%;
+  width: 88%;
+  height: 66%;
+  background: radial-gradient(
+    closest-side,
+    rgba(96, 165, 250, 0.18),
+    rgba(96, 165, 250, 0) 100%
+  );
+  animation: home-drift-a 26s ease-in-out infinite alternate;
+}
+
+.home-glow-b {
+  top: 6%;
+  left: 46%;
+  width: 66%;
+  height: 54%;
+  background: radial-gradient(
+    closest-side,
+    rgba(147, 197, 253, 0.2),
+    rgba(147, 197, 253, 0) 100%
+  );
+  animation: home-drift-b 32s ease-in-out infinite alternate;
+}
+
+@keyframes home-drift-a {
+  from {
+    transform: translate3d(-3%, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(4%, 3%, 0) scale(1.08);
+  }
+}
+
+@keyframes home-drift-b {
+  from {
+    transform: translate3d(3%, 1%, 0) scale(1.06);
+  }
+  to {
+    transform: translate3d(-4%, -2%, 0) scale(1);
+  }
+}
+
+/* Phones: no drifting, the static glows and grid are enough. */
+@media (max-width: 640px) {
+  .home-glow-a,
+  .home-glow-b {
+    animation: none;
+  }
+
+  .home-frame {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-glow-a,
+  .home-glow-b {
+    animation: none !important;
+  }
+}

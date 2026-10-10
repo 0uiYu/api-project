@@ -64,7 +64,9 @@ export default defineConfig(({ envMode }) => {
     },
     html: {
       template: './index.html',
-      favicon: './public/favicon.ico',
+      // PNG entry for modern browsers; ./public/favicon.ico stays for the
+      // legacy default /favicon.ico path.
+      favicon: './public/favicon.png',
     },
     server: {
       host: '0.0.0.0',

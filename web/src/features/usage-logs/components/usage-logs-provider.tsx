@@ -76,6 +76,16 @@ export function useUsageLogsContext() {
 }
 
 /**
+ * Same context, but callable outside the provider. Components that only add
+ * optional provider-backed affordances (such as opening the channel affinity
+ * dialog from the record details) use this so they can still render on their
+ * own, for example in focused component tests.
+ */
+export function useOptionalUsageLogsContext() {
+  return useContext(UsageLogsContext)
+}
+
+/**
  * Resolves the effective admin scope for usage logs: whether the current
  * user is allowed to view all users' logs (`canManageScope`), and whether
  * their current view preference (`viewScope`) has that scope active

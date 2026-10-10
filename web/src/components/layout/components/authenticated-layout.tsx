@@ -32,7 +32,20 @@ export function AuthenticatedLayout(props: AuthenticatedLayoutProps) {
                 'peer-data-[variant=inset]:h-[calc(100svh-var(--app-header-height,0px)-(var(--spacing)*4))]'
               )}
             >
-              {props.children ?? <AnimatedOutlet />}
+              {/* Console-wide page surface: white field with ice-blue radials
+                  and glows, matching the landing page. */}
+              <div aria-hidden='true' className='console-surface' />
+              <div
+                aria-hidden='true'
+                className='console-surface-glow console-surface-glow-a'
+              />
+              <div
+                aria-hidden='true'
+                className='console-surface-glow console-surface-glow-b'
+              />
+              <div className='relative flex min-h-0 flex-1 flex-col'>
+                {props.children ?? <AnimatedOutlet />}
+              </div>
             </SidebarInset>
           </div>
         </SidebarProvider>

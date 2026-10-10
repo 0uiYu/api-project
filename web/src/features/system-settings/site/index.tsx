@@ -8,7 +8,7 @@ import {
 
 const defaultSiteSettings: SiteSettings = {
   Notice: '',
-  SystemName: 'New API',
+  SystemName: 'Stable API',
   Logo: '',
   Footer: '',
   About: '',

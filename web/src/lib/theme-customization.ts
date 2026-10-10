@@ -9,7 +9,8 @@ export const THEME_PRESETS = [
   {
     value: 'default',
     name: 'Default',
-    swatches: ['oklch(0.72 0.18 250)', 'oklch(0.7 0.12 280)'],
+    // Ice blue + deep navy: the palette the public landing page established.
+    swatches: ['oklch(0.546 0.245 262.87)', 'oklch(0.205 0.028 264)'],
   },
   {
     // Inspired by Anthropic's official brand language: warm cream canvas

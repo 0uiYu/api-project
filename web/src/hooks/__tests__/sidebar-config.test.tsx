@@ -59,9 +59,17 @@ describe('security sidebar visibility', () => {
     )
     expect(
       result.current
-        .find((group) => group.id === 'personal')
+        .find((group) => group.id === 'general')
         ?.items.map((item) => item.title)
-    ).toEqual(['Wallet', 'Profile', 'Security & Access'])
+    ).toEqual([
+      'Dashboard',
+      'Model Square',
+      'API Keys',
+      'Usage Records',
+      'Wallet',
+      'Profile',
+      'Security & Access',
+    ])
     expect(
       result.current
         .flatMap((group) => group.items)
@@ -98,42 +106,57 @@ describe('security sidebar visibility', () => {
   })
 })
 
-describe('console sidebar business path', () => {
-  const removedTitles = [
-    'Chat',
-    'Audit Logs',
-    'Task Logs',
-    'Redemption Codes',
-    'Subscriptions',
-    'System Info',
-    'Task Plugins',
-    'Dashboard',
-  ]
+describe('console sidebar entries', () => {
+  // The chat area, the playground and the task/drawing logs stay out of the
+  // root menu. Their routes remain reachable by URL, and the admin-only
+  // reporting workspaces (call analytics, audit) sit in the Admin group.
+  const stillHidden = ['Chat', 'Playground', 'Task Logs']
 
-  it('shows overview, keys, playground, usage, and account entries', () => {
+  it('lists the console, personal and admin entries in order', () => {
     const { result } = sidebarFor()
     const titles = result.current
       .flatMap((group) => group.items)
       .map((item) => item.title)
     expect(titles).toEqual([
-      'Overview',
+      'Dashboard',
+      'Model Square',
       'API Keys',
-      'Playground',
-      'Usage Logs',
+      'Usage Records',
       'Wallet',
       'Profile',
       'Security & Access',
+      'Model Call Analytics',
+      'Audit Logs',
       'Channels',
       'Models',
       'Users',
+      'Redemption Codes',
+      'Subscriptions',
+      'System Info',
+      'Task Plugins',
       'System Settings',
     ])
-    for (const title of removedTitles) {
+    // The personal group was merged into the console group.
+    expect(result.current.map((group) => group.title)).toEqual([
+      'User Console',
+      'Admin Console',
+    ])
+    for (const title of stillHidden) {
       expect(titles).not.toContain(title)
     }
   })
 
-  it('keeps the saved audit flag without putting Audit Logs in the menu', () => {
+  it('keeps Security & Access in the console group', () => {
+    const { result } = sidebarFor()
+    const groupTitles = (id: string) =>
+      result.current
+        .find((group) => group.id === id)
+        ?.items.map((item) => item.title)
+    expect(groupTitles('general')).toContain('Security & Access')
+    expect(groupTitles('admin')).not.toContain('Security & Access')
+  })
+
+  it('keeps the saved audit flag from duplicating the admin audit entry', () => {
     const config = parseSidebarModulesAdmin(
       '{"console":{"enabled":true,"log":true}}'
     )
@@ -142,17 +165,24 @@ describe('console sidebar business path', () => {
     const titles = result.current
       .flatMap((group) => group.items)
       .map((item) => item.title)
-    expect(titles).not.toContain('Audit Logs')
-    expect(titles).toContain('Usage Logs')
+    // The audit workspace is an admin entry; the saved console.audit flag must
+    // not add a second copy to the user console.
+    expect(titles.filter((title) => title === 'Audit Logs')).toHaveLength(1)
+    expect(
+      result.current
+        .find((group) => group.id === 'admin')
+        ?.items.map((item) => item.title)
+    ).toContain('Audit Logs')
+    expect(titles).toContain('Usage Records')
   })
 
-  it('hiding Usage Logs leaves the rest of the business path', () => {
+  it('hiding Usage Records leaves the rest of the menu', () => {
     const { result } = sidebarFor({ console: { enabled: true, log: false } })
     const titles = result.current
       .flatMap((group) => group.items)
       .map((item) => item.title)
-    expect(titles).not.toContain('Usage Logs')
+    expect(titles).not.toContain('Usage Records')
     expect(titles).toContain('API Keys')
-    expect(titles).not.toContain('Audit Logs')
+    expect(titles).toContain('Models')
   })
 })

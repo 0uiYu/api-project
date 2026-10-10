@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { PublicLayout } from '@/components/layout'
+import { PublicLayout, SectionPageLayout } from '@/components/layout'
 import { PageTransition } from '@/components/page-transition'
 
 import {
@@ -17,9 +17,22 @@ import {
 import { EXCLUDED_GROUPS, VIEW_MODES } from './constants'
 import { useFilters } from './hooks/use-filters'
 import { usePricingData } from './hooks/use-pricing-data'
+import type { PricingSearch } from './search'
 
-export function Pricing() {
+export interface PricingProps {
+  /**
+   * `console` renders the catalog inside the console shell: no public hero,
+   * decorative backdrop or sticky filter column, so the model list is the
+   * first thing on screen.
+   */
+  variant?: 'public' | 'console'
+  /** Search params of the owning route, used as the initial filter state. */
+  search?: PricingSearch
+}
+
+export function Pricing(props: PricingProps) {
   const { t } = useTranslation()
+  const consoleVariant = props.variant === 'console'
   const [selectedModelName, setSelectedModelName] = useState<string | null>(
     null
   )
@@ -63,7 +76,7 @@ export function Pricing() {
     availableTags,
     clearFilters,
     clearSearch,
-  } = useFilters(models || [])
+  } = useFilters(models || [], props.search)
 
   const handleModelClick = useCallback((modelName: string) => {
     setSelectedModelName(modelName)
@@ -130,13 +143,96 @@ export function Pricing() {
     )
   }
 
-  if (isLoading) {
+  if (isLoading && !consoleVariant) {
     return (
       <PublicLayout showMainContainer={false}>
         <div className='mx-auto w-full max-w-[1800px] px-3 pt-16 pb-8 sm:px-6 sm:pt-20 sm:pb-10 xl:px-8'>
           <LoadingSkeleton viewMode={viewMode} />
         </div>
       </PublicLayout>
+    )
+  }
+
+  const searchBarProps = {
+    value: searchInput,
+    onChange: setSearchInput,
+    onClear: clearSearch,
+    placeholder: t('Search model name, provider, endpoint, or tag...'),
+  }
+
+  const toolbar = (
+    <PricingToolbar
+      filteredCount={filteredModels.length}
+      totalCount={models?.length}
+      sortBy={sortBy}
+      onSortChange={setSortBy}
+      tokenUnit={tokenUnit}
+      onTokenUnitChange={setTokenUnit}
+      showRechargePrice={showRechargePrice}
+      onRechargePriceChange={setShowRechargePrice}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      quotaTypeFilter={quotaTypeFilter}
+      endpointTypeFilter={endpointTypeFilter}
+      vendorFilter={vendorFilter}
+      groupFilter={groupFilter}
+      tagFilter={tagFilter}
+      onQuotaTypeChange={setQuotaTypeFilter}
+      onEndpointTypeChange={setEndpointTypeFilter}
+      onVendorChange={setVendorFilter}
+      onGroupChange={setGroupFilter}
+      onTagChange={setTagFilter}
+      vendors={vendors || []}
+      groups={availableGroups}
+      groupRatios={groupRatio}
+      tags={availableTags}
+      models={models || []}
+      hasActiveFilters={hasActiveFilters}
+      activeFilterCount={activeFilterCount}
+      onClearFilters={clearFilters}
+    />
+  )
+
+  const detailsDrawer = selectedModel ? (
+    <ModelDetailsDrawer
+      open={Boolean(selectedModel)}
+      onOpenChange={(open) => {
+        if (!open) setSelectedModelName(null)
+      }}
+      model={selectedModel}
+      groupRatio={groupRatio || {}}
+      usableGroup={usableGroup || {}}
+      endpointMap={
+        (endpointMap as Record<string, { path?: string; method?: string }>) ||
+        {}
+      }
+      autoGroups={autoGroups || []}
+      priceRate={priceRate ?? 1}
+      usdExchangeRate={usdExchangeRate ?? 1}
+      tokenUnit={tokenUnit}
+      showRechargePrice={showRechargePrice}
+    />
+  ) : null
+
+  if (consoleVariant) {
+    return (
+      <SectionPageLayout>
+        <SectionPageLayout.Title>{t('Model Square')}</SectionPageLayout.Title>
+        <SectionPageLayout.Content>
+          <div className='flex flex-col gap-3'>
+            <SearchBar {...searchBarProps} />
+            {isLoading ? (
+              <LoadingSkeleton viewMode={viewMode} />
+            ) : (
+              <>
+                {toolbar}
+                {renderPricingContent()}
+              </>
+            )}
+            {detailsDrawer}
+          </div>
+        </SectionPageLayout.Content>
+      </SectionPageLayout>
     )
   }
 
@@ -174,12 +270,7 @@ export function Pricing() {
               )}
             </p>
             <SearchBar
-              value={searchInput}
-              onChange={setSearchInput}
-              onClear={clearSearch}
-              placeholder={t(
-                'Search model name, provider, endpoint, or tag...'
-              )}
+              {...searchBarProps}
               className='mx-auto mt-4 max-w-2xl sm:mt-6'
             />
           </header>
@@ -207,63 +298,13 @@ export function Pricing() {
             />
 
             <main className='min-w-0 space-y-4'>
-              <PricingToolbar
-                filteredCount={filteredModels.length}
-                totalCount={models?.length}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
-                tokenUnit={tokenUnit}
-                onTokenUnitChange={setTokenUnit}
-                showRechargePrice={showRechargePrice}
-                onRechargePriceChange={setShowRechargePrice}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                quotaTypeFilter={quotaTypeFilter}
-                endpointTypeFilter={endpointTypeFilter}
-                vendorFilter={vendorFilter}
-                groupFilter={groupFilter}
-                tagFilter={tagFilter}
-                onQuotaTypeChange={setQuotaTypeFilter}
-                onEndpointTypeChange={setEndpointTypeFilter}
-                onVendorChange={setVendorFilter}
-                onGroupChange={setGroupFilter}
-                onTagChange={setTagFilter}
-                vendors={vendors || []}
-                groups={availableGroups}
-                groupRatios={groupRatio}
-                tags={availableTags}
-                models={models || []}
-                hasActiveFilters={hasActiveFilters}
-                activeFilterCount={activeFilterCount}
-                onClearFilters={clearFilters}
-              />
+              {toolbar}
 
               {renderPricingContent()}
             </main>
           </div>
 
-          {selectedModel && (
-            <ModelDetailsDrawer
-              open={Boolean(selectedModel)}
-              onOpenChange={(open) => {
-                if (!open) setSelectedModelName(null)
-              }}
-              model={selectedModel}
-              groupRatio={groupRatio || {}}
-              usableGroup={usableGroup || {}}
-              endpointMap={
-                (endpointMap as Record<
-                  string,
-                  { path?: string; method?: string }
-                >) || {}
-              }
-              autoGroups={autoGroups || []}
-              priceRate={priceRate ?? 1}
-              usdExchangeRate={usdExchangeRate ?? 1}
-              tokenUnit={tokenUnit}
-              showRechargePrice={showRechargePrice}
-            />
-          )}
+          {detailsDrawer}
         </PageTransition>
       </div>
     </PublicLayout>

@@ -3,46 +3,11 @@
 // ============================================================================
 
 /**
- * Default preset amount multipliers
- * Used to generate quick select amounts based on minimum topup
+ * Where the "Buy quota" button sends users when the deployment has not
+ * configured a topup link in System Settings → the button falls back to this.
+ * Replace it with your own purchase page.
  */
-export const DEFAULT_PRESET_MULTIPLIERS = [1, 5, 10, 30, 50, 100, 300, 500]
+export const DEFAULT_PURCHASE_URL = 'https://www.baidu.com'
 
-/**
- * Payment method types
- */
-export const PAYMENT_TYPES = {
-  ALIPAY: 'alipay',
-  WECHAT: 'wxpay',
-  STRIPE: 'stripe',
-  CREEM: 'creem',
-  WAFFO: 'waffo',
-  WAFFO_PANCAKE: 'waffo_pancake',
-} as const
-
-/**
- * Default payment type
- */
-export const DEFAULT_PAYMENT_TYPE = PAYMENT_TYPES.ALIPAY
-
-/**
- * Payment icon colors (HEX format for react-icons)
- */
-export const PAYMENT_ICON_COLORS = {
-  [PAYMENT_TYPES.ALIPAY]: '#1677FF',
-  [PAYMENT_TYPES.WECHAT]: '#07C160',
-  [PAYMENT_TYPES.STRIPE]: '#635BFF',
-  [PAYMENT_TYPES.CREEM]: '#6366F1',
-  [PAYMENT_TYPES.WAFFO]: '#2563EB',
-  [PAYMENT_TYPES.WAFFO_PANCAKE]: '#F97316',
-} as const
-
-/**
- * Default discount rate (no discount)
- */
-export const DEFAULT_DISCOUNT_RATE = 1.0
-
-/**
- * Default minimum topup amount
- */
-export const DEFAULT_MIN_TOPUP = 1
+/** Records per page in the topup history dialog */
+export const TOPUP_HISTORY_PAGE_SIZE = 10

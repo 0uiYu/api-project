@@ -1,12 +1,18 @@
 import {
   Activity,
+  BarChart3,
   Box,
+  CreditCard,
   FileText,
-  FlaskConical,
   Key,
+  PlugZap,
   Radio,
+  ServerCog,
   Settings,
   ShieldCheck,
+  ScrollText,
+  Store,
+  Ticket,
   User,
   Users,
   Wallet,
@@ -21,8 +27,15 @@ import { ROLE } from '@/lib/roles'
  *
  * These are shown when the URL does not match any nested sidebar view
  * registered in `layout/lib/sidebar-view-registry.ts`.
- * Removed entries stay reachable by URL. They are omitted here so the
- * console only shows the business path: overview, keys, try, usage, wallet.
+ *
+ * The personal entries (wallet/profile/security) live in the Console group and
+ * the model square is listed there too, so the console has a single "Console"
+ * group plus "Admin".
+ *
+ * The chat area, the playground and the task/drawing log entries stay out of
+ * the root menu; their routes remain reachable by URL. The call analytics and
+ * audit workspaces are admin-only reporting tools, so they live in the Admin
+ * group next to the rest of the admin workspace.
  */
 export function useSidebarData(): SidebarData {
   const { t } = useTranslation()
@@ -31,12 +44,17 @@ export function useSidebarData(): SidebarData {
     navGroups: [
       {
         id: 'general',
-        title: t('Console'),
+        title: t('User Console'),
         items: [
           {
-            title: t('Overview'),
+            title: t('Dashboard'),
             url: '/dashboard/overview',
             icon: Activity,
+          },
+          {
+            title: t('Model Square'),
+            url: '/model-square',
+            icon: Store,
           },
           {
             title: t('API Keys'),
@@ -44,21 +62,10 @@ export function useSidebarData(): SidebarData {
             icon: Key,
           },
           {
-            title: t('Playground'),
-            url: '/playground',
-            icon: FlaskConical,
-          },
-          {
-            title: t('Usage Logs'),
+            title: t('Usage Records'),
             url: '/usage-logs/common',
             icon: FileText,
           },
-        ],
-      },
-      {
-        id: 'personal',
-        title: t('Personal'),
-        items: [
           {
             title: t('Wallet'),
             url: '/wallet',
@@ -78,8 +85,18 @@ export function useSidebarData(): SidebarData {
       },
       {
         id: 'admin',
-        title: t('Admin'),
+        title: t('Admin Console'),
         items: [
+          {
+            title: t('Model Call Analytics'),
+            url: '/dashboard/models',
+            icon: BarChart3,
+          },
+          {
+            title: t('Audit Logs'),
+            url: '/usage-logs/audit',
+            icon: ScrollText,
+          },
           {
             title: t('Channels'),
             url: '/channels',
@@ -94,6 +111,28 @@ export function useSidebarData(): SidebarData {
             title: t('Users'),
             url: '/users',
             icon: Users,
+          },
+          {
+            title: t('Redemption Codes'),
+            url: '/redemption-codes',
+            icon: Ticket,
+          },
+          {
+            title: t('Subscriptions'),
+            url: '/subscriptions',
+            icon: CreditCard,
+          },
+          {
+            title: t('System Info'),
+            url: '/system-info',
+            icon: ServerCog,
+            requiredRole: ROLE.SUPER_ADMIN,
+          },
+          {
+            title: t('Task Plugins'),
+            url: '/task-plugins',
+            icon: PlugZap,
+            requiredRole: ROLE.SUPER_ADMIN,
           },
           {
             title: t('System Settings'),

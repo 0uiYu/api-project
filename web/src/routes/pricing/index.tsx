@@ -1,22 +1,9 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import z from 'zod'
 
 import { Pricing } from '@/features/pricing'
+import { pricingSearchSchema } from '@/features/pricing/search'
 import { getModuleAccessForGuard } from '@/lib/nav-modules'
 import { useAuthStore } from '@/stores/auth-store'
-
-const pricingSearchSchema = z.object({
-  search: z.string().optional(),
-  sort: z.string().optional(),
-  vendor: z.string().optional(),
-  group: z.string().optional(),
-  quotaType: z.string().optional(),
-  endpointType: z.string().optional(),
-  tag: z.string().optional(),
-  tokenUnit: z.enum(['M', 'K']).optional(),
-  view: z.enum(['card', 'table']).optional().catch(undefined),
-  rechargePrice: z.boolean().optional(),
-})
 
 export const Route = createFileRoute('/pricing/')({
   validateSearch: pricingSearchSchema,
@@ -35,5 +22,11 @@ export const Route = createFileRoute('/pricing/')({
       }
     }
   },
-  component: Pricing,
+  component: PublicPricing,
 })
+
+function PublicPricing() {
+  const search = Route.useSearch()
+
+  return <Pricing search={search} />
+}

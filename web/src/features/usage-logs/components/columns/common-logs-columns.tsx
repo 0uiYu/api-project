@@ -582,6 +582,23 @@ export function useCommonLogsColumns(
               </button>
             )
           },
+        },
+        {
+          id: 'ip',
+          header: t('IP'),
+          accessorFn: (row) => row.ip,
+          cell: ({ row }) => {
+            const ip = row.original.ip?.trim()
+            if (!ip) {
+              return <span className='text-muted-foreground text-xs'>-</span>
+            }
+            return (
+              <span className='font-mono text-xs' title={ip}>
+                {ip}
+              </span>
+            )
+          },
+          meta: { label: t('IP') },
         }
       )
     }

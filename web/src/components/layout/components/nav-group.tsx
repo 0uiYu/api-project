@@ -28,6 +28,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 
 import { checkIsActive } from '../lib/url-utils'
 import type {
@@ -42,13 +43,28 @@ import { ChatPresetsItem } from './chat-presets-item'
  * Sidebar navigation group component
  * Renders a group of navigation items, supporting regular links and collapsible submenus
  */
-export function NavGroup({ title, items }: NavGroupProps) {
+export function NavGroup({ id, title, items }: NavGroupProps) {
   const { state, isMobile } = useSidebar()
   const href = useLocation({ select: (location) => location.href })
+  // The admin entries are a separate workspace, not more user menu items:
+  // a divider and a tinted label keep the two halves visually distinct.
+  const isAdminGroup = id === 'admin'
 
   return (
-    <SidebarGroup className='px-2 py-1'>
-      <SidebarGroupLabel className='text-muted-foreground/70 px-2 text-[11px] font-medium tracking-wider uppercase'>
+    <SidebarGroup
+      className={cn(
+        'px-2 py-1',
+        isAdminGroup &&
+          'border-sidebar-border mt-2 border-t pt-3 group-data-[collapsible=icon]:mt-0 group-data-[collapsible=icon]:border-t-0 group-data-[collapsible=icon]:pt-1'
+      )}
+      data-sidebar-group={isAdminGroup ? 'admin' : undefined}
+    >
+      <SidebarGroupLabel
+        className={cn(
+          'text-muted-foreground/70 px-2 text-[11px] font-medium tracking-wider uppercase',
+          isAdminGroup && 'text-primary/70'
+        )}
+      >
         {title}
       </SidebarGroupLabel>
       <SidebarMenu>

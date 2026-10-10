@@ -197,6 +197,15 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
       logCategory,
       viewAccess
     ),
+    // Keep the common view simple for users by dropping the upstream routing
+    // column and the stream/TPS flag. Admins keep both: they are the ones
+    // reading channels and throughput while triaging traffic. The View menu
+    // can still flip either column, and the record dialog always has the
+    // channel, retry chain and stream status.
+    initialColumnVisibility:
+      logCategory === 'common' && !isAdmin
+        ? { channel: false, is_stream: false }
+        : {},
     pagination,
     enableRowSelection: false,
     onPaginationChange,

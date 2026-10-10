@@ -13,6 +13,7 @@ import {
   UserCog,
   Info,
   LogIn,
+  Sparkles,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -54,6 +55,7 @@ import {
 import { USAGE_BILLING_PATH, type LogOtherData } from '../../types'
 import { ResponseModelDetails } from '../model-badge'
 import { PluginAuthorLink } from '../plugin-author-link'
+import { useOptionalUsageLogsContext } from '../usage-logs-provider'
 import { DetailRow, DetailSection } from './log-detail-layout'
 
 // Maps a channel-update changed-field token (as recorded by the backend audit)
@@ -441,6 +443,9 @@ interface DetailsDialogProps {
 export function DetailsDialog(props: DetailsDialogProps) {
   const { t } = useTranslation()
   const { copiedText, copyToClipboard } = useCopyToClipboard({ notify: false })
+  // Optional: the affinity shortcut needs the page-level provider, but the
+  // dialog itself must render without it.
+  const logsContext = useOptionalUsageLogsContext()
   const other = parseLogOther(props.log.other)
   const typeConfig = getLogTypeConfig(props.log.type)
 
@@ -650,6 +655,40 @@ export function DetailsDialog(props: DetailsDialogProps) {
           {channelChain && props.isAdmin && (
             <DetailRow label={t('Retry Chain')} value={channelChain} mono />
           )}
+
+          {props.isAdmin &&
+            logsContext &&
+            other?.admin_info?.channel_affinity && (
+              <DetailRow
+                label={t('Channel Affinity')}
+                value={
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='sm'
+                    className='h-6 gap-1.5 px-1.5 text-xs'
+                    onClick={() => {
+                      const affinity = other.admin_info?.channel_affinity
+                      if (!affinity) return
+                      logsContext.setAffinityTarget({
+                        rule_name: affinity.rule_name || '',
+                        using_group:
+                          affinity.using_group || affinity.selected_group || '',
+                        key_hint: affinity.key_hint || '',
+                        key_fp: affinity.key_fp || '',
+                      })
+                      logsContext.setAffinityDialogOpen(true)
+                    }}
+                  >
+                    <Sparkles
+                      className='size-3.5 text-amber-500'
+                      aria-hidden='true'
+                    />
+                    {t('View')}
+                  </Button>
+                }
+              />
+            )}
 
           {props.log.token_name && (
             <DetailRow label={t('Token')} value={props.log.token_name} mono />

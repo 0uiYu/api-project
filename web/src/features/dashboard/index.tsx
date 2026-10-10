@@ -160,7 +160,7 @@ function PerformanceOverviewFallback() {
 
 const SECTION_META: Record<DashboardSectionId, { titleKey: string }> = {
   overview: {
-    titleKey: 'Overview',
+    titleKey: 'Dashboard',
   },
   models: {
     titleKey: 'Model Call Analytics',

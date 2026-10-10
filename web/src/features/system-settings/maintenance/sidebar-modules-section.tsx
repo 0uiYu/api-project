@@ -47,10 +47,6 @@ export function SidebarModulesSection({
   const updateOption = useUpdateOption()
 
   const sectionMeta: Record<string, { title: string; description: string }> = {
-    chat: {
-      title: t('Chat area'),
-      description: t('Playground experiments and live conversations.'),
-    },
     console: {
       title: t('Console area'),
       description: t('Dashboards, tokens, and usage analytics.'),
@@ -69,12 +65,6 @@ export function SidebarModulesSection({
     string,
     Record<string, { title: string; description: string }>
   > = {
-    chat: {
-      playground: {
-        title: t('Playground'),
-        description: t('Experiment with prompts and models in real time.'),
-      },
-    },
     console: {
       detail: {
         title: t('Dashboard'),
@@ -116,9 +106,17 @@ export function SidebarModulesSection({
         title: t('Users'),
         description: t('Administer user accounts and roles.'),
       },
+      redemption: {
+        title: t('Redeem codes'),
+        description: t('Create and review invite or credit codes.'),
+      },
       setting: {
         title: t('System settings'),
         description: t('Advanced platform configuration.'),
+      },
+      subscription: {
+        title: t('Subscription Management'),
+        description: t('Manage subscription plans and pricing.'),
       },
     },
   }

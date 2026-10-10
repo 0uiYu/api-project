@@ -52,7 +52,7 @@ export function DataTablePagination<TData>({
         className='flex w-full min-w-0 flex-wrap items-center justify-between gap-2 text-sm'
       >
         <span className='text-muted-foreground min-w-0 [overflow-wrap:anywhere]'>
-          {t('Total:')} {totalRows.toLocaleString()}
+          {t('Total')}: {totalRows.toLocaleString()}
         </span>
         <div className='flex items-center gap-2'>
           <Button
@@ -92,7 +92,7 @@ export function DataTablePagination<TData>({
     >
       <div className='flex min-w-0 shrink-0 items-center gap-2 @xl/pagination:gap-3'>
         <div className='flex shrink-0 items-baseline gap-1.5 text-xs font-medium whitespace-nowrap sm:text-sm'>
-          <span className='text-muted-foreground/80'>{t('Total:')}</span>
+          <span className='text-muted-foreground/80'>{t('Total')}:</span>
           <span className='text-foreground tabular-nums'>
             {totalRows.toLocaleString()}
           </span>

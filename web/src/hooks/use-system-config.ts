@@ -76,7 +76,9 @@ export function useSystemConfig(options: UseSystemConfigOptions = {}) {
       logo,
       () => {
         setLoadedLogoUrl(logo)
-        applyFaviconToDom(logo)
+        // The shipped console logo must not hijack the tab icon: /favicon.ico
+        // is the favicon, while a custom admin logo still drives both.
+        if (logo !== DEFAULT_LOGO) applyFaviconToDom(logo)
       },
       () => {
         if (logo !== DEFAULT_LOGO) {

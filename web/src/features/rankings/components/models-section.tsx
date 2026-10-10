@@ -136,7 +136,7 @@ export function ModelsSection(props: ModelsSectionProps) {
                 value: formatTokens(otherSum),
               })
             }
-            result.unshift({ key: t('Total:'), value: formatTokens(sum) })
+            result.unshift({ key: `${t('Total')}:`, value: formatTokens(sum) })
             return result
           },
         },

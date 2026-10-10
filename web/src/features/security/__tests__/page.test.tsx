@@ -157,6 +157,8 @@ describe('security page migration', () => {
       within(login).getByRole('button', { name: 'Change Password' })
     ).toBeVisible()
     expect(within(login).getByText('Account Bindings')).toBeVisible()
+    // The identity summary moved here from the profile page.
+    expect(screen.getByText('@alice')).toBeVisible()
     const verification = screen.getByRole('complementary', {
       name: 'Security verification',
     })
@@ -225,13 +227,16 @@ describe('security page migration', () => {
     )
   })
 
-  it('Profile retains preferences and no longer mounts security controls or requests', async () => {
+  it('Profile no longer mounts preferences, settings or security controls', async () => {
     await renderPage('/profile')
-    await waitFor(() =>
-      expect(
-        screen.getByRole('button', { name: 'Save Settings' })
-      ).toBeVisible()
-    )
+    // This fixture disables the sidebar-settings permission and the check-in
+    // calendar, so the profile page intentionally renders no cards: profile
+    // settings, language preferences and the identity summary all live in
+    // Security & Access now.
+    expect(document.querySelector('main')).not.toBeNull()
+    expect(
+      screen.queryByRole('button', { name: 'Save Settings' })
+    ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: 'Change Password' })
     ).not.toBeInTheDocument()
