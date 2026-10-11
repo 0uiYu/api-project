@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   act,
+  cleanup,
   fireEvent,
   render,
   screen,
@@ -12,6 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createJSONStorage } from 'zustand/middleware'
 
 import { api } from '@/lib/api'
+import { useAuthStore } from '@/stores/auth-store'
 import {
   DEFAULT_CURRENCY_CONFIG,
   useSystemConfigStore,
@@ -64,6 +66,7 @@ afterEach(() => {
   useSystemConfigStore
     .getState()
     .setConfig({ currency: { ...DEFAULT_CURRENCY_CONFIG } })
+  useAuthStore.setState(useAuthStore.getInitialState(), true)
   vi.useRealTimers()
   vi.unstubAllGlobals()
   useSystemConfigStore.persist.setOptions({ storage: originalStorage })
@@ -127,15 +130,49 @@ describe('model cards', () => {
     const onClick = vi.fn()
     const name = 'provider/model-with-a-long-name-and-a-version-suffix-20260906'
     render(
-      <ModelCard model={pricingModel({ model_name: name })} onClick={onClick} />
+      <ModelCard
+        model={pricingModel({ model_name: name })}
+        onClick={onClick}
+        showDetails
+      />
     )
     expect(screen.getByRole('heading', { name })).toHaveAttribute('title', name)
+    expect(
+      screen.getByRole('heading', { name }).closest('[data-slot="card"]')
+    ).toHaveClass('border-[#E2E8F0]', 'bg-white', 'text-[#17243D]')
     await user.click(screen.getByRole('button', { name: 'Copy model name' }))
     expect(await navigator.clipboard.readText()).toBe(name)
     expect(onClick).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: 'Details' }))
     expect(onClick).toHaveBeenCalledOnce()
     expect(onClick).toHaveBeenCalledWith(name)
+  })
+
+  it('keeps the name, price, and status in separate bands', () => {
+    render(<ModelCard model={pricingModel()} onClick={vi.fn()} />)
+    const heading = screen.getByRole('heading', { name: 'example-model' })
+    const pricing = screen.getByRole('group', { name: 'Pricing' })
+    const metrics = screen.getByLabelText(
+      'Performance metrics for the last 24 hours'
+    )
+    const header = heading.closest('[data-slot="card-header"]')
+    const footer = metrics.closest('[data-slot="card-footer"]')
+    expect(header).toHaveClass('bg-[#F4F8FC]')
+    expect(footer).toHaveClass('bg-[#F8FAFD]')
+    expect(header?.contains(pricing)).toBe(false)
+    expect(footer?.contains(pricing)).toBe(false)
+    expect(
+      heading.compareDocumentPosition(pricing) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).not.toBe(0)
+    expect(
+      pricing.compareDocumentPosition(metrics) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).not.toBe(0)
+    expect(pricing.contains(screen.getByText('Groups'))).toBe(false)
+    expect(heading.closest('[data-slot="card"]')).toHaveClass(
+      'border-t-[#2563EB]'
+    )
   })
 
   it('retains a neutral health strip and missing values when metrics are unavailable', () => {
@@ -152,8 +189,22 @@ describe('model cards', () => {
         name: 'Recent success-rate samples; gray bars indicate missing data.',
       })
     ).toBeVisible()
-    expect(screen.getByText('No description available.')).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Details' })).toBeEnabled()
+    expect(
+      screen.queryByRole('button', { name: 'Details' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('does not show a model description on the card', () => {
+    render(
+      <ModelCard
+        model={pricingModel({ description: 'Writes code' })}
+        onClick={vi.fn()}
+      />
+    )
+    expect(screen.queryByText('Writes code')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('No description available.')
+    ).not.toBeInTheDocument()
   })
 
   it('uses fixed spacing between hourly status bars', () => {
@@ -424,6 +475,22 @@ describe('model cards', () => {
         screen.getByLabelText('Performance metrics for the last 24 hours')
       ).getAllByText(/^—/)
     ).toHaveLength(3)
+    expect(
+      screen.queryByRole('button', { name: 'Details' })
+    ).not.toBeInTheDocument()
+
+    cleanup()
+    useAuthStore.getState().auth.setUser({
+      id: 1,
+      username: 'admin',
+      role: 10,
+      group: 'default',
+    })
+    render(
+      <QueryClientProvider client={queryClient}>
+        <ModelCardGrid models={[pricingModel()]} onModelClick={onModelClick} />
+      </QueryClientProvider>
+    )
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: 'Details' }))
     expect(onModelClick).toHaveBeenCalledWith('example-model')
@@ -501,10 +568,10 @@ describe('model cards', () => {
     expect(spans).toHaveLength(24)
     spans.forEach((slot, index) => {
       if (index === 18 || index === 23) {
-        expect(slot.classList.contains('bg-muted-foreground/15')).toBe(false)
+        expect(slot.classList.contains('bg-[#E2E8F0]')).toBe(false)
         return
       }
-      expect(slot.classList.contains('bg-muted-foreground/15')).toBe(true)
+      expect(slot.classList.contains('bg-[#E2E8F0]')).toBe(true)
     })
     vi.useRealTimers()
   })
@@ -537,7 +604,7 @@ describe('model cards', () => {
     ]
     expect(spans).toHaveLength(24)
     spans.forEach((slot) => {
-      expect(slot.classList.contains('bg-muted-foreground/15')).toBe(true)
+      expect(slot.classList.contains('bg-[#E2E8F0]')).toBe(true)
     })
     vi.useRealTimers()
   })
@@ -558,7 +625,7 @@ describe('model cards', () => {
     ]
     expect(spans).toHaveLength(24)
     spans.forEach((slot) => {
-      expect(slot.classList.contains('bg-muted-foreground/15')).toBe(true)
+      expect(slot.classList.contains('bg-[#E2E8F0]')).toBe(true)
     })
   })
 
@@ -591,10 +658,10 @@ describe('model cards', () => {
     expect(spans).toHaveLength(24)
     spans.forEach((slot, index) => {
       if (index === 18) {
-        expect(slot.classList.contains('bg-muted-foreground/15')).toBe(false)
+        expect(slot.classList.contains('bg-[#E2E8F0]')).toBe(false)
         return
       }
-      expect(slot.classList.contains('bg-muted-foreground/15')).toBe(true)
+      expect(slot.classList.contains('bg-[#E2E8F0]')).toBe(true)
     })
     vi.useRealTimers()
   })

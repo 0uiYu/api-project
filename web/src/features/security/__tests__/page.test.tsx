@@ -8,12 +8,14 @@ import {
 } from '@tanstack/react-router'
 import {
   cleanup,
+  fireEvent,
   render,
   screen,
   waitFor,
   within,
 } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { Toaster } from 'sonner'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { Profile } from '@/features/profile'
@@ -23,7 +25,7 @@ import { useAuthStore } from '@/stores/auth-store'
 
 import { Security } from '../index'
 
-const profile: UserProfile = {
+const baseProfile: UserProfile = {
   id: 1,
   username: 'alice',
   display_name: 'Alice',
@@ -43,16 +45,23 @@ const profile: UserProfile = {
   }),
 }
 
+let currentProfile: UserProfile = baseProfile
+
 beforeEach(() => {
+  currentProfile = {
+    ...baseProfile,
+    setting: baseProfile.setting,
+  }
   vi.stubGlobal('localStorage', {
     getItem: () => null,
     setItem: () => undefined,
     removeItem: () => undefined,
   })
   vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined)
-  useAuthStore
-    .getState()
-    .auth.setUser({ ...profile, permissions: { sidebar_settings: false } })
+  useAuthStore.getState().auth.setUser({
+    ...currentProfile,
+    permissions: { sidebar_settings: false },
+  })
   vi.spyOn(api, 'get').mockImplementation(async (url) => {
     if (url === '/api/user/access_tokens') {
       return { data: { success: true, data: { items: [], legacy: null } } }
@@ -66,7 +75,7 @@ beforeEach(() => {
       }
     }
     if (url === '/api/user/self') {
-      return { data: { success: true, data: profile } }
+      return { data: { success: true, data: currentProfile } }
     }
     if (url === '/api/user/passkey') {
       return { data: { success: true, data: { enabled: false } } }
@@ -92,6 +101,38 @@ afterEach(() => {
   useAuthStore.getState().auth.reset()
   vi.restoreAllMocks()
 })
+
+function stubAvatarFileReader() {
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+  class ImmediateImage {
+    width = 4
+    height = 4
+    private loadListener: (() => void) | undefined
+
+    addEventListener(event: string, listener: () => void) {
+      if (event === 'load') this.loadListener = listener
+    }
+
+    set src(_value: string) {
+      this.loadListener?.()
+    }
+  }
+  vi.stubGlobal('Image', ImmediateImage)
+}
+
+const tinyPng = () =>
+  new File(
+    [
+      Uint8Array.from(
+        atob(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+        ),
+        (char) => char.charCodeAt(0)
+      ),
+    ],
+    'avatar.png',
+    { type: 'image/png' }
+  )
 
 async function renderPage(path = '/security') {
   const client = new QueryClient({
@@ -132,55 +173,71 @@ async function renderPage(path = '/security') {
   const rendered = render(
     <QueryClientProvider client={client}>
       <RouterProvider router={router} />
+      <Toaster />
     </QueryClientProvider>
   )
   return { ...rendered, router }
 }
 
 describe('security page migration', () => {
-  it('places account management on the left and verification and privacy on the right', async () => {
+  it('stacks identity and account sections in one sheet', async () => {
+    currentProfile = { ...currentProfile, role: 10 }
     await renderPage()
     const login = await screen.findByRole('region', {
       name: 'Login & Authentication',
     })
     expect(
-      screen
-        .getAllByRole('region')
-        .map((region) => within(region).getAllByRole('heading')[0].textContent)
+      screen.getAllByRole('region').flatMap((region) => {
+        const heading = within(region).queryAllByRole('heading')[0]
+        return heading ? [heading.textContent] : []
+      })
     ).toEqual([
       'Login & Authentication',
       'Sessions & Access',
       'Account Actions',
+      'Security verification',
       'Privacy',
     ])
     expect(
       within(login).getByRole('button', { name: 'Change Password' })
     ).toBeVisible()
     expect(within(login).getByText('Account Bindings')).toBeVisible()
-    // The identity summary moved here from the profile page.
-    expect(screen.getByText('@alice')).toBeVisible()
-    const verification = screen.getByRole('complementary', {
+    expect(login).toHaveClass('md:grid-cols-[11rem_minmax(0,1fr)]')
+    const identity = screen
+      .getByText('@alice')
+      .closest('[data-slot="profile-identity"]')
+    const sheet = screen
+      .getByText('@alice')
+      .closest('[data-slot="profile-sheet"]')
+    expect(identity).toHaveClass('bg-[#F4F8FC]')
+    expect(identity).toContainElement(
+      screen.getByRole('button', { name: 'Upload avatar' })
+    )
+    expect(
+      identity?.querySelector('[data-slot="profile-identity-actions"]')
+    ).toHaveClass('sm:ms-auto')
+    const verification = screen.getByRole('region', {
       name: 'Security verification',
     })
+    const privacy = screen.getByRole('region', { name: 'Privacy' })
+    expect(sheet).toContainElement(login)
+    expect(sheet).toContainElement(verification)
+    expect(sheet).toContainElement(privacy)
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument()
+    expect(sheet).not.toHaveClass(
+      'xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.46fr)]'
+    )
     expect(await within(verification).findByText('Passkey Login')).toBeVisible()
     expect(
       await within(verification).findByText('Two-Factor Authentication')
     ).toBeVisible()
     expect(
-      within(verification).getByRole('switch', { name: 'Record IP Address' })
+      within(privacy).getByRole('switch', { name: 'Record IP Address' })
     ).toBeVisible()
-    expect(verification).toHaveClass('xl:sticky', 'xl:top-0')
-    expect(verification.parentElement).toHaveClass(
-      'grid',
-      'xl:grid-cols-[minmax(0,1fr)_minmax(360px,0.46fr)]'
-    )
     const access = screen.getByRole('region', { name: 'Sessions & Access' })
     expect(within(access).getByText('Access tokens')).toBeVisible()
     expect(
       await within(access).findByText('No active login sessions')
-    ).toBeVisible()
-    expect(
-      screen.getByRole('switch', { name: 'Record IP Address' })
     ).toBeVisible()
     expect(
       within(screen.getByRole('region', { name: 'Account Actions' })).getByRole(
@@ -191,6 +248,7 @@ describe('security page migration', () => {
   })
 
   it('built-in and custom bindings share one compact responsive grid', async () => {
+    currentProfile = { ...currentProfile, role: 10 }
     await renderPage()
     const bindings = await screen.findByRole('list', {
       name: 'Account Bindings',
@@ -204,6 +262,26 @@ describe('security page migration', () => {
       'gap-2'
     )
     expect(screen.queryByText('Custom OAuth')).not.toBeInTheDocument()
+  })
+
+  it('hides tokens, verification, privacy and bindings from an ordinary user', async () => {
+    await renderPage()
+    expect(
+      await screen.findByRole('button', { name: 'Change Password' })
+    ).toBeVisible()
+    expect(
+      screen.getByRole('region', { name: 'Sessions & Access' })
+    ).toBeVisible()
+    expect(await screen.findByText('No active login sessions')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Delete Account' })).toBeVisible()
+    expect(screen.queryByText('Account Bindings')).not.toBeInTheDocument()
+    expect(screen.queryByText('Access tokens')).not.toBeInTheDocument()
+    expect(screen.queryByText('Security verification')).not.toBeInTheDocument()
+    expect(screen.queryByText('Privacy')).not.toBeInTheDocument()
+    expect(screen.queryByText('Passkey Login')).not.toBeInTheDocument()
+    expect(api.get).not.toHaveBeenCalledWith('/api/user/passkey')
+    expect(api.get).not.toHaveBeenCalledWith('/api/user/2fa/status')
+    expect(api.get).not.toHaveBeenCalledWith('/api/user/access_tokens')
   })
 
   it('the password action opens the existing dialog by keyboard and Escape closes it', async () => {
@@ -225,6 +303,92 @@ describe('security page migration', () => {
     await waitFor(() =>
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     )
+  })
+
+  it('shows an avatar upload on the profile page and rejects a non-image file', async () => {
+    const put = vi.spyOn(api, 'put').mockResolvedValue({
+      data: { success: true },
+    })
+    await renderPage()
+    expect(
+      await screen.findByRole('button', { name: 'Upload avatar' })
+    ).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Profile' })).toBeVisible()
+    const input = screen.getByLabelText('Avatar file')
+    // The accept attribute stops the test helper from delivering this file.
+    // Dispatch the change directly so the page's own type check still runs.
+    fireEvent.change(input, {
+      target: {
+        files: [
+          new File(['not-an-image'], 'notes.txt', { type: 'text/plain' }),
+        ],
+      },
+    })
+    expect(put).not.toHaveBeenCalled()
+    expect(
+      await screen.findByText('Choose a PNG, JPEG, or WebP image')
+    ).toBeVisible()
+  })
+
+  it('shows an uploaded avatar on the profile card and keeps the other settings', async () => {
+    stubAvatarFileReader()
+    vi.spyOn(api, 'put').mockImplementation(async (_url, data) => {
+      const avatar = (data as { avatar?: string }).avatar
+      const setting = JSON.parse(String(currentProfile.setting)) as {
+        notify_type?: string
+        avatar?: string
+      }
+      if (avatar) setting.avatar = avatar
+      else delete setting.avatar
+      currentProfile = {
+        ...currentProfile,
+        setting: JSON.stringify(setting),
+      }
+      return { data: { success: true } }
+    })
+    await renderPage()
+    expect(
+      await screen.findByRole('button', { name: 'Upload avatar' })
+    ).toBeVisible()
+    expect(
+      screen.queryByRole('button', { name: 'Remove avatar' })
+    ).not.toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Avatar file'), {
+      target: { files: [tinyPng()] },
+    })
+    expect(
+      await screen.findByRole('button', { name: 'Remove avatar' })
+    ).toBeVisible()
+    await waitFor(() => {
+      const setting = useAuthStore.getState().auth.user?.setting
+      const record =
+        typeof setting === 'string'
+          ? (JSON.parse(setting) as { notify_type?: string; avatar?: string })
+          : (setting as { notify_type?: string; avatar?: string } | undefined)
+      expect(record?.notify_type).toBe('email')
+      expect(record?.avatar).toMatch(/^data:image\/png;base64,/)
+    })
+  })
+
+  it('keeps the new avatar on the card when the refreshed profile is still old', async () => {
+    stubAvatarFileReader()
+    vi.spyOn(api, 'put').mockResolvedValue({ data: { success: true } })
+    await renderPage()
+    expect(
+      await screen.findByRole('button', { name: 'Upload avatar' })
+    ).toBeVisible()
+    fireEvent.change(screen.getByLabelText('Avatar file'), {
+      target: { files: [tinyPng()] },
+    })
+    expect(
+      await screen.findByRole('button', { name: 'Remove avatar' })
+    ).toBeVisible()
+    await waitFor(() => {
+      const setting = useAuthStore.getState().auth.user?.setting
+      const record = setting as { notify_type?: string; avatar?: string }
+      expect(record.notify_type).toBe('email')
+      expect(record.avatar).toMatch(/^data:image\/png;base64,/)
+    })
   })
 
   it('Profile no longer mounts preferences, settings or security controls', async () => {

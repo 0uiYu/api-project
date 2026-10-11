@@ -1,4 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useCallback } from 'react'
 import z from 'zod'
 
 import { ApiKeys } from '@/features/keys'
@@ -13,9 +14,35 @@ const apiKeySearchSchema = z.object({
     .catch([]),
   filter: z.string().optional().catch(''),
   token: z.string().optional().catch(''),
+  create: z.literal(1).optional().catch(undefined),
 })
 
 export const Route = createFileRoute('/_authenticated/keys/')({
   validateSearch: apiKeySearchSchema,
-  component: ApiKeys,
+  component: ApiKeysRoute,
 })
+
+function ApiKeysRoute() {
+  const search = Route.useSearch()
+  const navigate = useNavigate()
+  const handleCreateRequest = useCallback(() => {
+    void navigate({
+      to: '/keys',
+      search: {
+        page: search.page,
+        pageSize: search.pageSize,
+        status: search.status,
+        filter: search.filter,
+        token: search.token,
+      },
+      replace: true,
+    })
+  }, [navigate, search])
+
+  return (
+    <ApiKeys
+      openCreate={search.create === 1}
+      onCreateRequestHandled={handleCreateRequest}
+    />
+  )
+}

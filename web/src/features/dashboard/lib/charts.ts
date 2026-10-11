@@ -9,6 +9,51 @@ import type {
 import { getCurrencyDisplay } from '@/lib/currency'
 import { formatChartTime, type TimeGranularity } from '@/lib/time'
 
+const chartTimeAxis = {
+  orient: 'bottom' as const,
+  type: 'band' as const,
+  label: { visible: true, autoRotate: true },
+}
+const chartValueAxis = {
+  orient: 'left' as const,
+  type: 'linear' as const,
+}
+
+function chartStepSeconds(granularity: TimeGranularity) {
+  if (granularity === 'hour') return 3600
+  if (granularity === 'week') return 604800
+  return 86400
+}
+
+/** Dated buckets for a chart axis, including ranges that have no usage rows. */
+function buildChartAxisLabels(
+  granularity: TimeGranularity,
+  range?: { start: number; end: number }
+) {
+  const step = chartStepSeconds(granularity)
+  const end = range?.end ?? Math.floor(Date.now() / 1000)
+  let fallbackSteps = 6
+  if (granularity === 'hour') fallbackSteps = 23
+  if (granularity === 'week') fallbackSteps = 4
+  const start = range?.start ?? end - step * fallbackSteps
+  const last = Math.max(start, end)
+  const labels: string[] = []
+
+  for (let ts = start; ts <= last && labels.length < 48; ts += step) {
+    if (!Number.isFinite(ts)) break
+    const label = formatChartTime(ts, granularity)
+    if (!label || label === 'Invalid Date' || labels.at(-1) === label) continue
+    labels.push(label)
+  }
+
+  if (labels.length === 0 && Number.isFinite(end)) {
+    const label = formatChartTime(end, granularity)
+    if (label && label !== 'Invalid Date') labels.push(label)
+  }
+
+  return labels
+}
+
 type TFunction = (key: string) => string
 type TooltipLineItem = {
   key: string
@@ -53,7 +98,8 @@ export function processChartData(
   data: QuotaDataItem[],
   timeGranularity: TimeGranularity = 'day',
   t?: TFunction,
-  chartCornerRadius?: number
+  chartCornerRadius?: number,
+  axisRange?: { start: number; end: number }
 ): ProcessedChartData {
   const tt: TFunction = t ?? ((x) => x)
   const otherLabel = tt('Other')
@@ -125,6 +171,9 @@ export function processChartData(
   }
 
   if (!data || data.length === 0) {
+    const axisLabels = buildChartAxisLabels(timeGranularity, axisRange)
+    const emptyUsage = axisLabels.map((time) => ({ Time: time, Usage: 0 }))
+    const emptyCounts = axisLabels.map((time) => ({ Time: time, Count: 0 }))
     return {
       spec_pie: {
         type: 'pie',
@@ -149,29 +198,27 @@ export function processChartData(
       },
       spec_line: {
         type: 'bar',
-        data: [{ id: 'barData', values: [] }],
+        data: [{ id: 'barData', values: emptyUsage }],
         xField: 'Time',
         yField: 'Usage',
-        seriesField: 'Model',
-        stack: true,
-        legends: { visible: true, selectMode: 'single' },
+        legends: { visible: false },
+        axes: [chartTimeAxis, chartValueAxis],
       },
       spec_area: {
         type: 'area',
-        data: [{ id: 'areaData', values: [] }],
+        data: [{ id: 'areaData', values: emptyUsage }],
         xField: 'Time',
         yField: 'Usage',
-        seriesField: 'Model',
-        stack: true,
-        legends: { visible: true, selectMode: 'single' },
+        legends: { visible: false },
+        axes: [chartTimeAxis, chartValueAxis],
       },
       spec_model_line: {
         type: 'area',
-        data: [{ id: 'lineData', values: [] }],
+        data: [{ id: 'lineData', values: emptyCounts }],
         xField: 'Time',
         yField: 'Count',
-        seriesField: 'Model',
-        legends: { visible: true, selectMode: 'single' },
+        legends: { visible: false },
+        axes: [chartTimeAxis, chartValueAxis],
         title: {
           visible: true,
           text: tt('Call Trend'),
@@ -266,9 +313,11 @@ export function processChartData(
   const MAX_TREND_POINTS = MAX_CHART_TREND_POINTS
   const fillTimePoints = (times: string[]) => {
     if (times.length >= MAX_TREND_POINTS) return times
-    const lastTime = Math.max(
-      ...data.map((item) => Number(item.created_at) || 0)
-    )
+    const stamped = data
+      .map((item) => Number(item.created_at))
+      .filter((value) => Number.isFinite(value) && value > 0)
+    const lastTime =
+      stamped.length > 0 ? Math.max(...stamped) : Math.floor(Date.now() / 1000)
     let intervalSec = 3600
     if (timeGranularity === 'week') {
       intervalSec = 604800
@@ -482,6 +531,7 @@ export function processChartData(
       yField: 'Usage',
       seriesField: 'Model',
       stack: true,
+      axes: [chartTimeAxis, chartValueAxis],
       legends: { visible: true, selectMode: 'single' },
       color: modelColor,
       bar: {
@@ -520,6 +570,7 @@ export function processChartData(
       yField: 'Usage',
       seriesField: 'Model',
       stack: false,
+      axes: [chartTimeAxis, chartValueAxis],
       legends: { visible: true, selectMode: 'single' },
       color: modelColor,
       tooltip: {
@@ -568,6 +619,7 @@ export function processChartData(
       yField: 'Count',
       seriesField: 'Model',
       stack: false,
+      axes: [chartTimeAxis, chartValueAxis],
       legends: { visible: true, selectMode: 'single' },
       color: modelColor,
       title: {

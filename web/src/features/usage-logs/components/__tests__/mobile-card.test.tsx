@@ -213,6 +213,15 @@ it('shows the established empty state when no logs exist', () => {
   expect(screen.getByText('No Logs Found')).toBeVisible()
 })
 
+it('presents each common log as its own white card', () => {
+  renderLogs()
+  const card = screen
+    .getByRole('button', { name: `Model: ${longName}` })
+    .closest('[data-slot="usage-log-card"]')
+  expect(card).toHaveClass('bg-white', 'border-t-[#2563EB]')
+  expect(card?.parentElement).not.toHaveClass('rounded-lg')
+})
+
 it.each([false, true])(
   'keeps timing in the right column for streaming=%s',
   (streaming) => {

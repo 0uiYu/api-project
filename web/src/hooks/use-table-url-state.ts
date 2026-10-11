@@ -3,7 +3,7 @@ import type {
   OnChangeFn,
   PaginationState,
 } from '@tanstack/react-table'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 type SearchRecord = Record<string, unknown>
 
@@ -13,7 +13,10 @@ const PAGE_SIZE_STORAGE_KEY = 'page-size'
 
 function getStoredPageSize(): number | undefined {
   try {
-    const n = parseInt(localStorage.getItem(PAGE_SIZE_STORAGE_KEY) ?? '', 10)
+    const n = Number.parseInt(
+      localStorage.getItem(PAGE_SIZE_STORAGE_KEY) ?? '',
+      10
+    )
     return n > 0 ? n : undefined // n > 0 also rejects NaN
   } catch {
     return undefined
@@ -162,6 +165,29 @@ export function useTableUrlState(
     })
   }
 
+  const navigateRef = useRef(navigate)
+  navigateRef.current = navigate
+  const navQueue = useRef({
+    queued: false,
+    patch: {} as Record<string, unknown>,
+  })
+  const queueSearchPatch = (next: Record<string, unknown>) => {
+    const queue = navQueue.current
+    queue.patch = { ...queue.patch, [pageKey]: undefined, ...next }
+    if (queue.queued) return
+    queue.queued = true
+    queueMicrotask(() => {
+      const current = navQueue.current.patch
+      navQueue.current = { queued: false, patch: {} }
+      navigateRef.current({
+        search: (prev) => ({
+          ...(prev as SearchRecord),
+          ...current,
+        }),
+      })
+    })
+  }
+
   const [globalFilter, setGlobalFilter] = useState<string | undefined>(() => {
     if (!globalFilterEnabled) return undefined
     const raw = (search as SearchRecord)[globalFilterKey]
@@ -177,12 +203,8 @@ export function useTableUrlState(
               : updater
           const value = trimGlobal ? next.trim() : next
           setGlobalFilter(value)
-          navigate({
-            search: (prev) => ({
-              ...(prev as SearchRecord),
-              [pageKey]: undefined,
-              [globalFilterKey]: value ? value : undefined,
-            }),
+          queueSearchPatch({
+            [globalFilterKey]: value ? value : undefined,
           })
         }
       : undefined
@@ -203,20 +225,13 @@ export function useTableUrlState(
         patch[cfg.searchKey] =
           value.trim() !== '' ? serialize(value) : undefined
       } else {
-        const value = Array.isArray(found?.value)
-          ? (found!.value as unknown[])
-          : []
+        const rawValue = found?.value
+        const value = Array.isArray(rawValue) ? rawValue : []
         patch[cfg.searchKey] = value.length > 0 ? serialize(value) : undefined
       }
     }
 
-    navigate({
-      search: (prev) => ({
-        ...(prev as SearchRecord),
-        [pageKey]: undefined,
-        ...patch,
-      }),
-    })
+    queueSearchPatch(patch)
   }
 
   const ensurePageInRange = (

@@ -23,10 +23,13 @@ import {
 } from '@/components/ui/tooltip'
 import { getGroups } from '@/features/users/api'
 import { useMediaQuery } from '@/hooks'
-import { getUserGroups } from '@/lib/api'
 import { requireServerSuccess } from '@/lib/server-error-message'
 
-import { LOG_TYPE_ALL_VALUE, LOG_TYPE_FILTERS } from '../constants'
+import {
+  LOG_TYPE_ALL_VALUE,
+  LOG_TYPE_FILTERS,
+  USER_LOG_TYPE_FILTERS,
+} from '../constants'
 import { buildSearchParams } from '../lib/filter'
 import { getDefaultTimeRange } from '../lib/utils'
 import type { CommonLogFilters } from '../types'
@@ -45,6 +48,9 @@ type LogTypeValue = (typeof LOG_TYPE_FILTERS)[number]['value']
 const logTypeValueSet = new Set<string>(
   LOG_TYPE_FILTERS.map((type) => type.value)
 )
+const userLogTypeValueSet = new Set<string>(
+  USER_LOG_TYPE_FILTERS.map((type) => type.value)
+)
 
 type CommonLogDraft = {
   sourceKey: string
@@ -54,6 +60,11 @@ type CommonLogDraft = {
 
 function isLogTypeValue(value: string): value is LogTypeValue {
   return logTypeValueSet.has(value)
+}
+
+function logTypeForView(logType: LogTypeValue, isAdmin: boolean): LogTypeValue {
+  if (isAdmin || userLogTypeValueSet.has(logType)) return logType
+  return LOG_TYPE_ALL_VALUE
 }
 
 function getLogTypeValue(value: unknown): LogTypeValue {
@@ -113,19 +124,12 @@ export function CommonLogsFilterBar<TData>(
     queryFn: async () => requireServerSuccess(await getGroups()),
     enabled: isAdmin,
   })
-  const { data: userGroups } = useQuery({
-    queryKey: ['user-groups'],
-    queryFn: async () => requireServerSuccess(await getUserGroups()),
-    enabled: !isAdmin,
-  })
   const groupOptions = useMemo(() => {
-    const groups = isAdmin
-      ? (adminGroups?.data ?? [])
-      : Object.keys(userGroups?.data ?? {})
+    const groups = adminGroups?.data ?? []
     return groups
       .filter((group) => group !== 'auto')
       .map((group) => ({ label: group, value: group }))
-  }, [isAdmin, adminGroups, userGroups])
+  }, [adminGroups])
 
   const searchState = useMemo<CommonLogDraft>(() => {
     const { start, end } = getDefaultTimeRange()
@@ -176,6 +180,7 @@ export function CommonLogsFilterBar<TData>(
     draft.sourceKey === searchState.sourceKey ? draft : searchState
   const filters = activeDraft.filters
   const logType = activeDraft.logType
+  const visibleLogType = logTypeForView(logType, isAdmin)
 
   const handleChange = useCallback(
     (field: keyof CommonLogFilters, value: Date | string | undefined) => {
@@ -194,20 +199,27 @@ export function CommonLogsFilterBar<TData>(
 
   const handleApply = useCallback(
     (nextFilters: CommonLogFilters = filters) => {
-      const filterParams = buildSearchParams(nextFilters, 'common')
+      const appliedFilters = isAdmin
+        ? nextFilters
+        : {
+            startTime: nextFilters.startTime,
+            endTime: nextFilters.endTime,
+            model: nextFilters.model,
+          }
+      const filterParams = buildSearchParams(appliedFilters, 'common')
       navigate({
         to: '/usage-logs/$section',
         params: { section: 'common' },
         search: {
           ...filterParams,
-          type: [logType],
+          type: [logTypeForView(logType, isAdmin)],
           page: 1,
         },
       })
       queryClient.invalidateQueries({ queryKey: ['logs'] })
       queryClient.invalidateQueries({ queryKey: ['usage-logs-stats'] })
     },
-    [filters, logType, navigate, queryClient]
+    [filters, isAdmin, logType, navigate, queryClient]
   )
 
   const handleReset = useCallback(() => {
@@ -250,9 +262,10 @@ export function CommonLogsFilterBar<TData>(
     !!filters.requestId ||
     !!filters.upstreamRequestId
 
-  const hasTypeFilter = logType !== LOG_TYPE_ALL_VALUE
-  const hasAdditionalFilters =
-    !!filters.model || !!filters.group || hasTypeFilter || hasExpandedFilters
+  const hasTypeFilter = visibleLogType !== LOG_TYPE_ALL_VALUE
+  const hasAdditionalFilters = isAdmin
+    ? !!filters.model || !!filters.group || hasTypeFilter || hasExpandedFilters
+    : !!filters.model || hasTypeFilter
 
   const expandedFilterCount = [
     filters.token,
@@ -264,16 +277,17 @@ export function CommonLogsFilterBar<TData>(
   const sensitiveInputClass = sensitiveVisible
     ? undefined
     : '[-webkit-text-security:disc]'
-  const logTypeItems = useMemo(
-    () =>
-      LOG_TYPE_FILTERS.map((type) => ({
-        value: type.value,
-        label: t(type.label),
-        deprecated: type.deprecated,
-      })),
-    [t]
+  const logTypeItems = useMemo(() => {
+    const types = isAdmin ? LOG_TYPE_FILTERS : USER_LOG_TYPE_FILTERS
+    return types.map((type) => ({
+      value: type.value,
+      label: t(type.label),
+      deprecated: type.deprecated,
+    }))
+  }, [isAdmin, t])
+  const selectedLogType = logTypeItems.find(
+    (type) => type.value === visibleLogType
   )
-  const selectedLogType = logTypeItems.find((type) => type.value === logType)
   const deprecatedTypeDescription = t(
     'Only used to find historical logs. New records are available in Audit Logs.'
   )
@@ -347,7 +361,7 @@ export function CommonLogsFilterBar<TData>(
     <LogsFilterField>
       <Select
         items={logTypeItems}
-        value={logType}
+        value={visibleLogType}
         onValueChange={(value) => {
           const nextLogType =
             value !== null && isLogTypeValue(value) ? value : LOG_TYPE_ALL_VALUE
@@ -372,7 +386,7 @@ export function CommonLogsFilterBar<TData>(
         >
           <SelectValue className='min-w-0'>
             <span className='truncate'>
-              {selectedLogType?.label ?? t('All Types')}
+              {selectedLogType?.label ?? (isAdmin ? t('All Types') : t('All'))}
             </span>
             {selectedLogType?.deprecated && (
               <Badge
@@ -390,27 +404,29 @@ export function CommonLogsFilterBar<TData>(
           className='max-w-[calc(100vw-2rem)] min-w-52'
         >
           <SelectGroup>
-            {LOG_TYPE_FILTERS.map((type) => (
-              <SelectItem
-                key={type.value}
-                value={type.value}
-                className='[&_[data-slot=select-item-text]]:items-center'
-                aria-description={
-                  type.deprecated ? deprecatedTypeDescription : undefined
-                }
-              >
-                {t(type.label)}
-                {type.deprecated && (
-                  <Badge
-                    variant='secondary'
-                    className='h-4 px-1.5 text-[10px] font-normal'
-                    title={deprecatedTypeDescription}
-                  >
-                    {t('Deprecated')}
-                  </Badge>
-                )}
-              </SelectItem>
-            ))}
+            {(isAdmin ? LOG_TYPE_FILTERS : USER_LOG_TYPE_FILTERS).map(
+              (type) => (
+                <SelectItem
+                  key={type.value}
+                  value={type.value}
+                  className='[&_[data-slot=select-item-text]]:items-center'
+                  aria-description={
+                    type.deprecated ? deprecatedTypeDescription : undefined
+                  }
+                >
+                  {t(type.label)}
+                  {type.deprecated && (
+                    <Badge
+                      variant='secondary'
+                      className='h-4 px-1.5 text-[10px] font-normal'
+                      title={deprecatedTypeDescription}
+                    >
+                      {t('Deprecated')}
+                    </Badge>
+                  )}
+                </SelectItem>
+              )
+            )}
           </SelectGroup>
         </SelectContent>
       </Select>
@@ -472,30 +488,48 @@ export function CommonLogsFilterBar<TData>(
   return (
     <LogsFilterToolbar
       table={props.table}
+      embedded
       compactMobile
       stats={statsBar}
       actionStart={sensitiveToggle}
       primaryFilters={
-        <>
-          {dateRangeFilter}
-          {modelFilter}
-          {groupFilter}
-          {typeFilter}
-        </>
+        isAdmin ? (
+          <>
+            {dateRangeFilter}
+            {modelFilter}
+            {groupFilter}
+            {typeFilter}
+          </>
+        ) : (
+          <>
+            {dateRangeFilter}
+            {modelFilter}
+            {typeFilter}
+          </>
+        )
       }
-      advancedFilters={advancedFilters}
+      advancedFilters={isAdmin ? advancedFilters : undefined}
       mobilePinnedFilters={dateRangeFilter}
       mobileFilters={
-        <>
-          {modelFilter}
-          {groupFilter}
-          {typeFilter}
-          {advancedFilters}
-        </>
+        isAdmin ? (
+          <>
+            {modelFilter}
+            {groupFilter}
+            {typeFilter}
+            {advancedFilters}
+          </>
+        ) : (
+          <>
+            {modelFilter}
+            {typeFilter}
+          </>
+        )
       }
       mobileFilterCount={
-        [filters.model, filters.group, hasTypeFilter].filter(Boolean).length +
-        expandedFilterCount
+        isAdmin
+          ? [filters.model, filters.group, hasTypeFilter].filter(Boolean)
+              .length + expandedFilterCount
+          : [filters.model, hasTypeFilter].filter(Boolean).length
       }
       hasAdvancedActiveFilters={hasExpandedFilters}
       advancedFilterCount={expandedFilterCount}

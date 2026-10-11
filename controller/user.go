@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -31,6 +33,45 @@ type LoginRequest struct {
 	Password          string `json:"password"`
 	PasswordEncrypted string `json:"password_encrypted"`
 	EncryptionKeyID   string `json:"encryption_key_id"`
+}
+
+const maxUserAvatarLength = 32 * 1024
+
+func normalizeUserAvatar(raw string) (string, error) {
+	if raw == "" {
+		return "", nil
+	}
+	if len(raw) > maxUserAvatarLength || strings.ContainsAny(raw, "\r\n") {
+		return "", errors.New("avatar rejected")
+	}
+	mediaType, payload, ok := strings.Cut(strings.TrimPrefix(raw, "data:"), ";base64,")
+	if !strings.HasPrefix(raw, "data:") || !ok {
+		return "", errors.New("avatar rejected")
+	}
+	switch mediaType {
+	case "image/png", "image/jpeg", "image/webp":
+	default:
+		return "", errors.New("avatar rejected")
+	}
+	decoded, err := base64.StdEncoding.Strict().DecodeString(payload)
+	if err != nil || len(decoded) == 0 {
+		return "", errors.New("avatar rejected")
+	}
+	switch mediaType {
+	case "image/png":
+		if !bytes.HasPrefix(decoded, []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}) {
+			return "", errors.New("avatar rejected")
+		}
+	case "image/jpeg":
+		if !bytes.HasPrefix(decoded, []byte{0xff, 0xd8, 0xff}) {
+			return "", errors.New("avatar rejected")
+		}
+	case "image/webp":
+		if len(decoded) < 12 || !bytes.Equal(decoded[:4], []byte("RIFF")) || !bytes.Equal(decoded[8:12], []byte("WEBP")) {
+			return "", errors.New("avatar rejected")
+		}
+	}
+	return raw, nil
 }
 
 func GetPasswordEncryptionKey(c *gin.Context) {
@@ -229,39 +270,36 @@ func Register(c *gin.Context) {
 		common.ApiErrorI18n(c, i18n.MsgInvalidParams)
 		return
 	}
-	user.Username = strings.TrimSpace(user.Username)
-	user.Email = model.NormalizeEmail(user.Email)
-	if user.Username == "" {
-		common.ApiErrorI18n(c, i18n.MsgInvalidParams)
+	// Password registration always uses the verified email as the username.
+	// The code is checked before any existence lookup so an unauthenticated
+	// caller cannot probe which addresses already have accounts.
+	email, err := service.ValidateAccountEmail(user.Email)
+	if err != nil {
+		writeSecurityOperationError(c, err)
 		return
 	}
-	if err := common.Validate.Struct(&user); err != nil {
+	if err := common.Validate.Var(user.Password, "required,min=8,max=128"); err != nil {
 		common.ApiErrorI18n(c, i18n.MsgUserInputInvalid, map[string]any{"Error": err.Error()})
 		return
 	}
-	if common.EmailVerificationEnabled {
-		if user.Email == "" || user.VerificationCode == "" {
-			common.ApiErrorI18n(c, i18n.MsgUserEmailVerificationRequired)
-			return
-		}
-		if !common.VerifyCodeWithKey(user.Email, user.VerificationCode, common.EmailVerificationPurpose) {
-			common.ApiErrorI18n(c, i18n.MsgUserVerificationCodeError)
-			return
-		}
-		if err := model.EnsureEmailAvailable(user.Email, 0); err != nil {
-			if errors.Is(err, model.ErrEmailAlreadyTaken) {
-				common.ApiErrorI18n(c, i18n.MsgUserEmailAlreadyTaken)
-				return
-			}
-			common.ApiErrorI18n(c, i18n.MsgDatabaseError)
-			return
-		}
+	verificationCode := strings.TrimSpace(user.VerificationCode)
+	if verificationCode == "" {
+		common.ApiErrorI18n(c, i18n.MsgUserEmailVerificationRequired)
+		return
 	}
-	emailForExistCheck := ""
-	if common.EmailVerificationEnabled {
-		emailForExistCheck = user.Email
+	if !common.VerifyCodeWithKey(email, verificationCode, common.EmailVerificationPurpose) {
+		common.ApiErrorI18n(c, i18n.MsgUserVerificationCodeError)
+		return
 	}
-	exist, err := model.CheckUserExistOrDeleted(user.Username, emailForExistCheck)
+	if err := model.EnsureEmailAvailable(email, 0); err != nil {
+		if errors.Is(err, model.ErrEmailAlreadyTaken) {
+			common.ApiErrorI18n(c, i18n.MsgUserEmailAlreadyTaken)
+			return
+		}
+		common.ApiErrorI18n(c, i18n.MsgDatabaseError)
+		return
+	}
+	exist, err := model.CheckUserExistOrDeleted(email, email)
 	if err != nil {
 		common.ApiErrorI18n(c, i18n.MsgDatabaseError)
 		common.SysLog(fmt.Sprintf("CheckUserExistOrDeleted error: %v", err))
@@ -271,17 +309,23 @@ func Register(c *gin.Context) {
 		common.ApiErrorI18n(c, i18n.MsgUserExists)
 		return
 	}
+	local, _, _ := strings.Cut(email, "@")
+	displayName := []rune(local)
+	if len(displayName) == 0 {
+		displayName = []rune("user")
+	}
+	if len(displayName) > 20 {
+		displayName = displayName[:20]
+	}
 	affCode := user.AffCode // this code is the inviter's code, not the user's own code
 	inviterId, _ := model.GetUserIdByAffCode(affCode)
 	cleanUser := model.User{
-		Username:    user.Username,
+		Username:    email,
 		Password:    user.Password,
-		DisplayName: user.Username,
+		DisplayName: string(displayName),
+		Email:       email,
 		InviterId:   inviterId,
 		Role:        common.RoleCommonUser, // 明确设置角色为普通用户
-	}
-	if common.EmailVerificationEnabled {
-		cleanUser.Email = user.Email
 	}
 	if err := cleanUser.Insert(inviterId); err != nil {
 		if errors.Is(err, model.ErrEmailAlreadyTaken) {
@@ -815,6 +859,34 @@ func UpdateSelf(c *gin.Context) {
 			return
 		}
 
+		common.ApiSuccessI18n(c, i18n.MsgUpdateSuccess, nil)
+		return
+	}
+
+	// 头像只写入当前用户的 setting，不改密码、角色或余额。
+	if avatarValue, avatarExists := requestData["avatar"]; avatarExists && !passwordRequested {
+		avatar, isString := avatarValue.(string)
+		if !isString {
+			common.ApiErrorI18n(c, i18n.MsgInvalidInput)
+			return
+		}
+		normalized, err := normalizeUserAvatar(avatar)
+		if err != nil {
+			common.ApiErrorI18n(c, i18n.MsgInvalidInput)
+			return
+		}
+		userId := c.GetInt("id")
+		user, err := model.GetUserById(userId, false)
+		if err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		currentSetting := user.GetSetting()
+		currentSetting.Avatar = normalized
+		if err := model.UpdateUserSetting(user.Id, currentSetting); err != nil {
+			common.ApiErrorI18n(c, i18n.MsgUpdateFailed)
+			return
+		}
 		common.ApiSuccessI18n(c, i18n.MsgUpdateSuccess, nil)
 		return
 	}
@@ -1423,13 +1495,17 @@ func UpdateUserSetting(c *gin.Context) {
 		upstreamModelUpdateNotifyEnabled = *req.UpstreamModelUpdateNotifyEnabled
 	}
 
-	// 构建设置
+	// 构建设置。通知字段整包重写时保留侧栏、语言、扣费偏好和头像。
 	settings := dto.UserSetting{
 		NotifyType:                       req.QuotaWarningType,
 		QuotaWarningThreshold:            req.QuotaWarningThreshold,
 		UpstreamModelUpdateNotifyEnabled: upstreamModelUpdateNotifyEnabled,
 		AcceptUnsetRatioModel:            req.AcceptUnsetModelRatioModel,
 		RecordIpLog:                      req.RecordIpLog,
+		SidebarModules:                   existingSettings.SidebarModules,
+		BillingPreference:                existingSettings.BillingPreference,
+		Language:                         existingSettings.Language,
+		Avatar:                           existingSettings.Avatar,
 	}
 
 	// 如果是webhook类型,添加webhook相关设置

@@ -41,9 +41,7 @@ function UsageLogsMobileSkeleton(props: { separate: boolean }) {
       aria-label={t('Loading')}
       aria-busy='true'
       className={
-        props.separate
-          ? 'min-w-0 space-y-3'
-          : 'border-border/50 bg-card overflow-hidden rounded-lg border'
+        props.separate ? 'min-w-0 space-y-3' : 'overflow-hidden bg-white'
       }
     >
       {[1, 2, 3].map((i) => (
@@ -51,8 +49,8 @@ function UsageLogsMobileSkeleton(props: { separate: boolean }) {
           key={i}
           className={
             props.separate
-              ? 'border-border/60 bg-card space-y-3 rounded-xl border p-3.5'
-              : 'border-border/40 space-y-2.5 border-b p-3 last:border-b-0'
+              ? 'space-y-3 rounded-xl border border-t-2 border-[#E2E8F0] border-t-[#2563EB] bg-white p-3.5'
+              : 'space-y-2.5 border-b border-[#E7EEF6] bg-white p-3 last:border-b-0'
           }
         >
           <div className='flex items-center justify-between gap-3'>
@@ -240,7 +238,7 @@ export function UsageLogsMobileList<TData>({
 
   if (!rows || rows.length === 0) {
     return (
-      <div className='rounded-lg border p-6'>
+      <div className='bg-white p-6'>
         <Empty className='border-none p-0'>
           <EmptyHeader>
             <EmptyMedia variant='icon'>
@@ -259,7 +257,7 @@ export function UsageLogsMobileList<TData>({
       className={cn(
         logCategory === 'common'
           ? 'min-w-0 space-y-3'
-          : 'border-border/50 bg-card overflow-hidden rounded-lg border'
+          : 'overflow-hidden bg-white'
       )}
     >
       {rows.map((row) => {
@@ -275,10 +273,11 @@ export function UsageLogsMobileList<TData>({
         return (
           <div
             key={row.id}
+            data-slot='usage-log-card'
             className={cn(
               logCategory === 'common'
-                ? 'border-border/60 bg-card min-w-0 rounded-xl border p-3.5'
-                : 'border-border/40 border-b border-l-2 border-l-transparent p-3 transition-colors last:border-b-0',
+                ? 'min-w-0 rounded-xl border border-[#E2E8F0] border-t-2 border-t-[#2563EB] bg-white p-3.5 text-[#17243D]'
+                : 'border-b border-[#E7EEF6] border-l-2 border-l-transparent bg-white p-3 text-[#17243D] transition-colors last:border-b-0',
               tintClass
             )}
           >

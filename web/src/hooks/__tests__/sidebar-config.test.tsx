@@ -52,7 +52,7 @@ function sidebarFor(admin?: object, user?: object, canConfigure = true) {
 }
 
 describe('security sidebar visibility', () => {
-  it('old configurations show Security & Access immediately after Profile and keep API Keys', () => {
+  it('old configurations show Profile after the subscription plans and keep API Keys', () => {
     const { result } = sidebarFor(
       { personal: { enabled: true, personal: true, topup: true } },
       { personal: { enabled: true, personal: true } }
@@ -66,9 +66,10 @@ describe('security sidebar visibility', () => {
       'Model Square',
       'API Keys',
       'Usage Records',
-      'Wallet',
+      'Account Balance',
+      'Referral Program',
+      'Subscription Plans',
       'Profile',
-      'Security & Access',
     ])
     expect(
       result.current
@@ -81,17 +82,14 @@ describe('security sidebar visibility', () => {
     [{ personal: { enabled: false } }, { personal: { security: true } }],
     [undefined, { personal: { enabled: true, security: false } }],
     [undefined, { personal: { enabled: false } }],
-  ])(
-    'admin or user disablement hides Security & Access (%j, %j)',
-    (admin, user) => {
-      const { result } = sidebarFor(admin, user)
-      expect(
-        result.current
-          .flatMap((group) => group.items)
-          .some((item) => item.title === 'Security & Access')
-      ).toBe(false)
-    }
-  )
+  ])('admin or user disablement hides Profile (%j, %j)', (admin, user) => {
+    const { result } = sidebarFor(admin, user)
+    expect(
+      result.current
+        .flatMap((group) => group.items)
+        .some((item) => item.title === 'Profile')
+    ).toBe(false)
+  })
   it('users without sidebar configuration permission retain the admin view', () => {
     const { result } = sidebarFor(
       undefined,
@@ -101,7 +99,7 @@ describe('security sidebar visibility', () => {
     expect(
       result.current
         .flatMap((group) => group.items)
-        .some((item) => item.title === 'Security & Access')
+        .some((item) => item.title === 'Profile')
     ).toBe(true)
   })
 })
@@ -122,9 +120,10 @@ describe('console sidebar entries', () => {
       'Model Square',
       'API Keys',
       'Usage Records',
-      'Wallet',
+      'Account Balance',
+      'Referral Program',
+      'Subscription Plans',
       'Profile',
-      'Security & Access',
       'Model Call Analytics',
       'Audit Logs',
       'Channels',
@@ -146,14 +145,17 @@ describe('console sidebar entries', () => {
     }
   })
 
-  it('keeps Security & Access in the console group', () => {
+  it('keeps Profile in the console group', () => {
     const { result } = sidebarFor()
     const groupTitles = (id: string) =>
       result.current
         .find((group) => group.id === id)
         ?.items.map((item) => item.title)
-    expect(groupTitles('general')).toContain('Security & Access')
-    expect(groupTitles('admin')).not.toContain('Security & Access')
+    expect(groupTitles('general')).toContain('Profile')
+    expect(groupTitles('admin')).not.toContain('Profile')
+    expect(
+      groupTitles('general')?.filter((title) => title === 'Profile')
+    ).toHaveLength(1)
   })
 
   it('keeps the saved audit flag from duplicating the admin audit entry', () => {

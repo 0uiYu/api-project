@@ -23,6 +23,7 @@ import (
 	"github.com/0uiYu/api-project/common"
 	"github.com/0uiYu/api-project/model"
 	"github.com/0uiYu/api-project/oauth"
+	"github.com/0uiYu/api-project/relaykit/dto"
 	"github.com/0uiYu/api-project/service"
 	"github.com/0uiYu/api-project/setting/system_setting"
 	"github.com/gin-gonic/gin"
@@ -465,6 +466,49 @@ func TestSecurityAccountProfileUpdateDoesNotRequireProof(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "Updated", stored.DisplayName)
 	assert.Equal(t, user.Password, stored.Password)
+}
+
+func TestSecurityAccountAvatarUpdate(t *testing.T) {
+	const png = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+	user, identity := setupSecurityEnrollmentTest(t)
+	require.NoError(t, model.UpdateUserSetting(user.Id, dto.UserSetting{
+		SidebarModules: "keep",
+		Language:       "zh",
+	}))
+
+	body, err := common.Marshal(map[string]string{"avatar": png})
+	require.NoError(t, err)
+	response := securityEnrollmentRequest(http.MethodPut, "/api/user/self", string(body), "", identity, UpdateSelf)
+	var result securityEnrollmentResponse
+	require.NoError(t, common.Unmarshal(response.Body.Bytes(), &result))
+	require.True(t, result.Success, response.Body.String())
+	stored, err := model.GetUserById(user.Id, true)
+	require.NoError(t, err)
+	assert.Equal(t, png, stored.GetSetting().Avatar)
+	assert.Equal(t, "keep", stored.GetSetting().SidebarModules)
+	assert.Equal(t, "zh", stored.GetSetting().Language)
+	assert.Equal(t, user.Password, stored.Password)
+	self := securityEnrollmentRequest(http.MethodGet, "/api/user/self", "", "", identity, GetSelf)
+	assert.Contains(t, self.Body.String(), png)
+
+	rejected, err := common.Marshal(map[string]string{"avatar": "data:image/svg+xml;base64,PHN2Zy8+"})
+	require.NoError(t, err)
+	response = securityEnrollmentRequest(http.MethodPut, "/api/user/self", string(rejected), "", identity, UpdateSelf)
+	require.NoError(t, common.Unmarshal(response.Body.Bytes(), &result))
+	assert.False(t, result.Success)
+	stored, err = model.GetUserById(user.Id, true)
+	require.NoError(t, err)
+	assert.Equal(t, png, stored.GetSetting().Avatar)
+
+	cleared, err := common.Marshal(map[string]string{"avatar": ""})
+	require.NoError(t, err)
+	response = securityEnrollmentRequest(http.MethodPut, "/api/user/self", string(cleared), "", identity, UpdateSelf)
+	require.NoError(t, common.Unmarshal(response.Body.Bytes(), &result))
+	require.True(t, result.Success, response.Body.String())
+	stored, err = model.GetUserById(user.Id, true)
+	require.NoError(t, err)
+	assert.Empty(t, stored.GetSetting().Avatar)
+	assert.Equal(t, "keep", stored.GetSetting().SidebarModules)
 }
 
 func TestSecurityAccountLongUnicodePasswordAndSessionRotation(t *testing.T) {

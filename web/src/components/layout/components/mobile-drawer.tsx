@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router'
-import { X, User, Wallet, LogOut, ShieldCheck } from 'lucide-react'
+import { X, User, Wallet, LogOut } from 'lucide-react'
 import { AnimatePresence, motion, type Variants } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 
@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import useDialogState from '@/hooks/use-dialog'
 import { useIsSidebarModuleVisible } from '@/hooks/use-sidebar-config'
 import { useUserDisplay } from '@/hooks/use-user-display'
+import { getStoredUserAvatar } from '@/lib/avatar'
 import type { AuthUser } from '@/stores/auth-store'
 
 import { MOBILE_DRAWER_ANIMATION, MOBILE_DRAWER_CONFIG } from '../constants'
@@ -64,6 +65,7 @@ function MobileUserProfile({ user, onNavigate }: MobileUserProfileProps) {
   const { t } = useTranslation()
   const [signOutOpen, setSignOutOpen] = useDialogState()
   const { displayName, initials, roleLabel } = useUserDisplay(user)
+  const avatar = getStoredUserAvatar(user?.setting)
   const isSecurityVisible = useIsSidebarModuleVisible('/security')
 
   if (!user) return null
@@ -75,7 +77,7 @@ function MobileUserProfile({ user, onNavigate }: MobileUserProfileProps) {
         {/* User header - simplified */}
         <div className='border-border flex items-center gap-2.5 border-b p-2.5'>
           <Avatar className='size-9'>
-            <AvatarImage src='/avatars/01.png' alt={`@${displayName}`} />
+            {avatar && <AvatarImage src={avatar} alt={t('Avatar')} />}
             <AvatarFallback className='text-xs'>{initials}</AvatarFallback>
           </Avatar>
           <div className='flex flex-1 flex-col gap-0.5 overflow-hidden'>
@@ -97,23 +99,14 @@ function MobileUserProfile({ user, onNavigate }: MobileUserProfileProps) {
         </div>
 
         {/* Navigation links - same style as top nav */}
-        <Link
-          to='/profile'
-          onClick={onNavigate}
-          className='text-primary/60 hover:text-primary/80 border-border flex items-center gap-2.5 border-b p-2.5 transition-colors'
-        >
-          <User className='size-4' />
-          {t('Profile')}
-        </Link>
-
         {isSecurityVisible && (
           <Link
             to='/security'
             onClick={onNavigate}
             className='text-primary/60 hover:text-primary/80 border-border flex items-center gap-2.5 border-b p-2.5 transition-colors'
           >
-            <ShieldCheck className='size-4' />
-            {t('Security & Access')}
+            <User className='size-4' />
+            {t('Profile')}
           </Link>
         )}
 
@@ -123,7 +116,7 @@ function MobileUserProfile({ user, onNavigate }: MobileUserProfileProps) {
           className='text-primary/60 hover:text-primary/80 border-border flex items-center gap-2.5 border-b p-2.5 transition-colors'
         >
           <Wallet className='size-4' />
-          {t('Wallet')}
+          {t('Account Balance')}
         </Link>
 
         {/* Sign out - consistent style */}

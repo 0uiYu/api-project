@@ -20,10 +20,10 @@ function StatBadge(props: {
   accent: string
 }) {
   return (
-    <span className='border-border/60 bg-muted/25 inline-flex h-7 items-center gap-2 rounded-md border px-2.5 text-xs shadow-xs'>
-      <span className={cn('h-3.5 w-0.5 rounded-full', props.accent)} />
-      <span className='text-muted-foreground'>{props.label}</span>
-      <span className='text-foreground/85 font-mono font-semibold tabular-nums'>
+    <span className='inline-flex h-7 items-center gap-2 rounded-full border border-[#DCE7F7] bg-white px-2.5 text-xs text-[#17243D]'>
+      <span className={cn('size-1.5 rounded-full', props.accent)} />
+      <span className='text-[#64748B]'>{props.label}</span>
+      <span className='font-mono font-semibold tabular-nums'>
         {props.value}
       </span>
     </span>
@@ -61,9 +61,9 @@ export function CommonLogsStats() {
   if (isLoading) {
     return (
       <div className='flex items-center gap-2'>
-        <Skeleton className='h-7 w-[150px] rounded-md' />
-        <Skeleton className='h-7 w-[100px] rounded-md' />
-        <Skeleton className='h-7 w-[120px] rounded-md' />
+        <Skeleton className='h-7 w-[150px] rounded-full' />
+        <Skeleton className='h-7 w-[100px] rounded-full' />
+        <Skeleton className='h-7 w-[120px] rounded-full' />
       </div>
     )
   }
@@ -73,17 +73,17 @@ export function CommonLogsStats() {
       <StatBadge
         label={t('Usage')}
         value={sensitiveVisible ? formatLogQuota(stats?.quota || 0) : '••••'}
-        accent='bg-sky-500/70'
+        accent='bg-[#2563EB]'
       />
       <StatBadge
         label={t('RPM')}
         value={stats?.rpm || 0}
-        accent='bg-rose-500/65'
+        accent='bg-[#1E3A8A]'
       />
       <StatBadge
         label={t('TPM')}
         value={stats?.tpm || 0}
-        accent='bg-slate-400/70'
+        accent='bg-[#94A3B8]'
       />
     </div>
   )

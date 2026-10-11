@@ -1,4 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  RouterProvider,
+} from '@tanstack/react-router'
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -13,7 +20,7 @@ const CARD_TITLES = [
   'Requests today',
   'Spend today',
   'Tokens today',
-  'Cumulative tokens',
+  'Tokens in 30 days',
   'Performance metrics',
   'Average response time',
 ]
@@ -89,9 +96,30 @@ afterEach(() => {
 })
 
 async function renderStatCards() {
+  const root = createRootRoute()
+  const index = createRoute({
+    getParentRoute: () => root,
+    path: '/',
+    component: StatCards,
+  })
+  const wallet = createRoute({
+    getParentRoute: () => root,
+    path: '/wallet',
+    component: () => null,
+  })
+  const keys = createRoute({
+    getParentRoute: () => root,
+    path: '/keys',
+    component: () => null,
+  })
+  const router = createRouter({
+    routeTree: root.addChildren([index, wallet, keys]),
+    history: createMemoryHistory({ initialEntries: ['/'] }),
+  })
+  await router.load()
   render(
     <QueryClientProvider client={client}>
-      <StatCards />
+      <RouterProvider router={router} />
     </QueryClientProvider>
   )
 
@@ -106,6 +134,22 @@ describe('dashboard stat cards', () => {
     for (const title of CARD_TITLES) {
       expect(screen.getByText(title)).toBeVisible()
     }
+
+    const quotaCalls = vi
+      .mocked(api.get)
+      .mock.calls.filter((call) => call[0] === '/api/data/self')
+    expect(quotaCalls.length).toBeGreaterThan(0)
+    for (const call of quotaCalls) {
+      const params = (
+        call[1] as {
+          params: { start_timestamp: number; end_timestamp: number }
+        }
+      ).params
+      expect(params.start_timestamp).toBeGreaterThan(0)
+      expect(params.end_timestamp - params.start_timestamp).toBeLessThanOrEqual(
+        2_592_000
+      )
+    }
   })
 
   it('shows live rates, key counts and cumulative request totals', async () => {
@@ -116,5 +160,24 @@ describe('dashboard stat cards', () => {
     expect(screen.getByText('320 ms')).toBeVisible()
     expect(screen.getByText('1 enabled')).toBeVisible()
     expect(screen.getByText('Total: 8')).toBeVisible()
+  })
+
+  it('links the balance recharge button to the account balance page', async () => {
+    await renderStatCards()
+
+    expect(screen.getByRole('button', { name: 'Recharge' })).toHaveAttribute(
+      'href',
+      '/wallet'
+    )
+  })
+
+  it('links the API key card to the create form', async () => {
+    await renderStatCards()
+
+    const href = screen
+      .getByRole('button', { name: 'Create API Key' })
+      .getAttribute('href')
+    expect(href).toContain('/keys')
+    expect(href).toContain('create=1')
   })
 })

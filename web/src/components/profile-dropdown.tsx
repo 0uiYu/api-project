@@ -1,10 +1,10 @@
 import { useNavigate } from '@tanstack/react-router'
-import { User, Wallet, LogOut, Settings, ShieldCheck } from 'lucide-react'
+import { User, Wallet, LogOut, Settings } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SignOutDialog } from '@/components/sign-out-dialog'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -16,7 +16,11 @@ import {
 import useDialogState from '@/hooks/use-dialog'
 import { useIsSidebarModuleVisible } from '@/hooks/use-sidebar-config'
 import { useUserDisplay } from '@/hooks/use-user-display'
-import { getUserAvatarFallback, getUserAvatarStyle } from '@/lib/avatar'
+import {
+  getStoredUserAvatar,
+  getUserAvatarFallback,
+  getUserAvatarStyle,
+} from '@/lib/avatar'
 import { ROLE } from '@/lib/roles'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -32,6 +36,7 @@ export function ProfileDropdown() {
   const isWalletVisible = useIsSidebarModuleVisible('/wallet')
   const isSecurityVisible = useIsSidebarModuleVisible('/security')
   const avatarName = user?.username || displayName
+  const avatar = getStoredUserAvatar(user?.setting)
   const avatarFallback = getUserAvatarFallback(avatarName)
   const avatarFallbackStyle = useMemo(
     () => getUserAvatarStyle(avatarName),
@@ -45,6 +50,7 @@ export function ProfileDropdown() {
           render={<Button variant='ghost' className='relative size-6 p-0' />}
         >
           <Avatar className='size-6'>
+            {avatar && <AvatarImage src={avatar} alt={t('Avatar')} />}
             <AvatarFallback
               className={`${avatarFallbackClassName} text-[11px]`}
               style={avatarFallbackStyle}
@@ -56,6 +62,7 @@ export function ProfileDropdown() {
         <DropdownMenuContent align='end' sideOffset={8} className='w-56'>
           <div className='flex items-center gap-2 px-1.5 py-1.5'>
             <Avatar className='size-8'>
+              {avatar && <AvatarImage src={avatar} alt='' />}
               <AvatarFallback
                 className={`${avatarFallbackClassName} text-xs`}
                 style={avatarFallbackStyle}
@@ -85,22 +92,17 @@ export function ProfileDropdown() {
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem onClick={() => navigate({ to: '/profile' })}>
-            <User className='size-4' />
-            {t('Profile')}
-          </DropdownMenuItem>
-
           {isSecurityVisible && (
             <DropdownMenuItem onClick={() => navigate({ to: '/security' })}>
-              <ShieldCheck className='size-4' />
-              {t('Security & Access')}
+              <User className='size-4' />
+              {t('Profile')}
             </DropdownMenuItem>
           )}
 
           {isWalletVisible && (
             <DropdownMenuItem onClick={() => navigate({ to: '/wallet' })}>
               <Wallet className='size-4' />
-              {t('Wallet')}
+              {t('Account Balance')}
             </DropdownMenuItem>
           )}
 

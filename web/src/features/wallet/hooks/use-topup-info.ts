@@ -10,8 +10,9 @@ import type { WalletTopupInfo } from '../types'
 // ============================================================================
 
 /**
- * Reads the two topup flags the redemption card needs: whether redemption is
- * enabled, and where users can buy codes.
+ * Reads topup settings. The wallet page uses redemption and the purchase
+ * link. The referral and subscription pages also read payment methods and
+ * the compliance flag.
  */
 export function useTopupInfo() {
   const [topupInfo, setTopupInfo] = useState<WalletTopupInfo | null>(null)
@@ -31,6 +32,13 @@ export function useTopupInfo() {
       setTopupInfo({
         enable_redemption: response.data.enable_redemption,
         topup_link: response.data.topup_link,
+        enable_online_topup: response.data.enable_online_topup,
+        enable_stripe_topup: response.data.enable_stripe_topup,
+        enable_creem_topup: response.data.enable_creem_topup,
+        enable_waffo_pancake_topup: response.data.enable_waffo_pancake_topup,
+        pay_methods: response.data.pay_methods,
+        payment_compliance_confirmed:
+          response.data.payment_compliance_confirmed,
       })
     } catch (err) {
       handleServerError(err)

@@ -38,6 +38,7 @@ interface LogsFilterToolbarProps<TData> {
   searchLoading?: boolean
   onReset: () => void
   onSearch: () => void
+  embedded?: boolean
   className?: string
 }
 
@@ -224,8 +225,11 @@ export function LogsFilterToolbar<TData>(props: LogsFilterToolbarProps<TData>) {
 
   return (
     <div
+      data-slot={props.embedded ? 'usage-filter-band' : undefined}
       className={cn(
-        'bg-card/50 rounded-lg border p-2.5 sm:p-3',
+        props.embedded
+          ? 'border-b border-[#E7EEF6] bg-[#F4F8FC] px-3 py-3 sm:px-4'
+          : 'bg-card/50 rounded-lg border p-2.5 sm:p-3',
         props.className
       )}
     >

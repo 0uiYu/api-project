@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
 
 	"github.com/0uiYu/api-project/common"
@@ -222,18 +223,29 @@ func SendEmailVerification(c *gin.Context) {
 		return
 	}
 
+	// A taken address gets the same success response and no message, so the
+	// send endpoint does not reveal which emails already belong to accounts.
 	if model.IsEmailAlreadyTaken(email) {
-		common.ApiErrorI18n(c, i18n.MsgUserEmailAlreadyTaken)
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "",
+		})
 		return
 	}
-	code := common.GenerateVerificationCode(6)
+	code, err := common.GenerateNumericVerificationCode(8)
+	if err != nil {
+		common.ApiErrorI18n(c, i18n.MsgUserRegisterFailed)
+		return
+	}
 	common.RegisterVerificationCodeWithKey(email, code, common.EmailVerificationPurpose)
 	subject := fmt.Sprintf("%s邮箱验证邮件", common.SystemName)
 	content := fmt.Sprintf("<p>您好，你正在进行%s邮箱验证。</p>"+
 		"<p>您的验证码为: <strong>%s</strong></p>"+
-		"<p>验证码 %d 分钟内有效，如果不是本人操作，请忽略。</p>", common.SystemName, code, common.VerificationValidMinutes)
+		"<p>验证码 %d 分钟内有效，如果不是本人操作，请忽略。</p>",
+		html.EscapeString(common.SystemName), html.EscapeString(code), common.VerificationValidMinutes)
 	err = common.SendEmail(subject, email, content)
 	if err != nil {
+		common.DeleteKey(email, common.EmailVerificationPurpose)
 		common.ApiError(c, err)
 		return
 	}

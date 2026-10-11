@@ -1,6 +1,11 @@
 package common
 
 import (
+	"crypto/rand"
+	"crypto/sha256"
+	"crypto/subtle"
+	"errors"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -9,9 +14,12 @@ import (
 )
 
 type verificationValue struct {
-	code string
-	time time.Time
+	hash     [sha256.Size]byte
+	time     time.Time
+	failures int
 }
+
+const verificationAttemptLimit = 5
 
 const (
 	EmailVerificationPurpose = "v"
@@ -32,11 +40,26 @@ func GenerateVerificationCode(length int) string {
 	return code[:length]
 }
 
+func GenerateNumericVerificationCode(length int) (string, error) {
+	if length < 6 || length > 12 {
+		return "", errors.New("invalid verification code length")
+	}
+	var code strings.Builder
+	for range length {
+		number, err := rand.Int(rand.Reader, big.NewInt(10))
+		if err != nil {
+			return "", err
+		}
+		code.WriteByte(byte('0' + number.Int64()))
+	}
+	return code.String(), nil
+}
+
 func RegisterVerificationCodeWithKey(key string, code string, purpose string) {
 	verificationMutex.Lock()
 	defer verificationMutex.Unlock()
 	verificationMap[purpose+key] = verificationValue{
-		code: code,
+		hash: sha256.Sum256([]byte(code)),
 		time: time.Now(),
 	}
 	if len(verificationMap) > verificationMapMaxSize {
@@ -45,14 +68,24 @@ func RegisterVerificationCodeWithKey(key string, code string, purpose string) {
 }
 
 func VerifyCodeWithKey(key string, code string, purpose string) bool {
+	presented := sha256.Sum256([]byte(code))
 	verificationMutex.Lock()
 	defer verificationMutex.Unlock()
 	value, okay := verificationMap[purpose+key]
-	now := time.Now()
-	if !okay || int(now.Sub(value.time).Seconds()) >= VerificationValidMinutes*60 {
+	if !okay || int(time.Since(value.time).Seconds()) >= VerificationValidMinutes*60 {
 		return false
 	}
-	return code == value.code
+	if subtle.ConstantTimeCompare(value.hash[:], presented[:]) != 1 {
+		value.failures++
+		if value.failures >= verificationAttemptLimit {
+			delete(verificationMap, purpose+key)
+			return false
+		}
+		verificationMap[purpose+key] = value
+		return false
+	}
+	delete(verificationMap, purpose+key)
+	return true
 }
 
 func DeleteKey(key string, purpose string) {

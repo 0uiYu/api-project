@@ -100,6 +100,20 @@ export const LOG_TYPE_FILTERS = [
   ),
 ] as const
 
+/**
+ * Result choices shown to a regular user. Admin views keep LOG_TYPE_FILTERS.
+ */
+export const USER_LOG_TYPE_FILTERS = [
+  { label: 'All', value: LOG_TYPE_ALL_VALUE, deprecated: false },
+  {
+    label: 'Consume',
+    value: String(LOG_TYPE_ENUM.CONSUME),
+    deprecated: false,
+  },
+  { label: 'Error', value: String(LOG_TYPE_ENUM.ERROR), deprecated: false },
+  { label: 'Refund', value: String(LOG_TYPE_ENUM.REFUND), deprecated: false },
+] as const
+
 // ============================================================================
 // Drawing Logs (MjProxy) Constants
 // ============================================================================

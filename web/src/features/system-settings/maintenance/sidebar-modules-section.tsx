@@ -81,15 +81,11 @@ export function SidebarModulesSection({
     },
     personal: {
       topup: {
-        title: t('Wallet'),
+        title: t('Account Balance'),
         description: t('Top up balance and view billing history.'),
       },
-      personal: {
-        title: t('Profile'),
-        description: t('Personal settings and profile management.'),
-      },
       security: {
-        title: t('Security & Access'),
+        title: t('Profile'),
         description: t('Manage your security settings and account access'),
       },
     },

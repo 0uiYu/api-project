@@ -68,7 +68,7 @@ export const ModelPerfBadge = memo(function ModelPerfBadge(
             title={t(
               'Success rate excludes business rejections and includes the current partial hour.'
             )}
-            className='text-muted-foreground flex items-center justify-between gap-1 text-[11px] leading-4'
+            className='flex items-center justify-between gap-1 text-[11px] leading-4 text-[#64748B]'
           >
             <span>{t('Status')}</span>
             <span className='font-mono'>
@@ -98,7 +98,7 @@ export const ModelPerfBadge = memo(function ModelPerfBadge(
                       rate >= 0 &&
                       rate <= 100
                       ? getSuccessRateDotClass(rate)
-                      : 'bg-muted-foreground/15'
+                      : 'bg-[#E2E8F0]'
                   )}
                 />
               )
@@ -106,7 +106,7 @@ export const ModelPerfBadge = memo(function ModelPerfBadge(
           </dd>
         </div>
         <div title={t('Average latency')} className='shrink-0'>
-          <dt className='text-muted-foreground text-[11px] leading-4'>
+          <dt className='text-[11px] leading-4 text-[#64748B]'>
             {t('Latency short')}
           </dt>
           <dd className='mt-1 font-mono whitespace-nowrap'>
@@ -114,7 +114,7 @@ export const ModelPerfBadge = memo(function ModelPerfBadge(
           </dd>
         </div>
         <div title={t('Throughput')} className='shrink-0'>
-          <dt className='text-muted-foreground text-[11px] leading-4'>
+          <dt className='text-[11px] leading-4 text-[#64748B]'>
             {t('Throughput short')}
           </dt>
           <dd className='mt-1 font-mono whitespace-nowrap'>

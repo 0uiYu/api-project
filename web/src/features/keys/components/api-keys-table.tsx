@@ -234,6 +234,7 @@ export function ApiKeysTable() {
     value: tokenFilter,
     inputValue: tokenFilterInput,
     setInputValue: setTokenFilterInput,
+    resetInput: resetTokenFilterInput,
   } = useDebouncedColumnFilter({
     columnFilters,
     columnId: '_tokenSearch',
@@ -352,6 +353,12 @@ export function ApiKeysTable() {
             singleSelect: true,
           },
         ],
+        onReset: () => {
+          resetTokenFilterInput()
+          onColumnFiltersChange((previous) =>
+            previous.filter((filter) => filter.id !== '_tokenSearch')
+          )
+        },
       }}
       mobile={
         <ApiKeysMobileList table={table} isLoading={isLoading} now={now} />

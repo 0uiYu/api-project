@@ -104,6 +104,8 @@ export interface UserSettings {
   upstream_model_update_notify_enabled?: boolean
   /** Preferred interface/API response language */
   language?: string
+  /** Validated data-URL avatar */
+  avatar?: string
 }
 
 /**
@@ -113,6 +115,7 @@ export interface UpdateUserRequest {
   display_name?: string
   password?: string
   original_password?: string
+  avatar?: string
 }
 
 export interface AccountSecurityResult {

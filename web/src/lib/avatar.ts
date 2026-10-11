@@ -22,6 +22,34 @@ export function getUserAvatarStyle(name: string): UserAvatarStyle {
   }
 }
 
+const storedAvatarPattern =
+  /^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/
+
+export function getStoredUserAvatar(setting: unknown): string | undefined {
+  let record: Record<string, unknown> | undefined
+  if (typeof setting === 'string') {
+    try {
+      const parsed: unknown = JSON.parse(setting)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        record = parsed as Record<string, unknown>
+      }
+    } catch {
+      return undefined
+    }
+  } else if (
+    setting &&
+    typeof setting === 'object' &&
+    !Array.isArray(setting)
+  ) {
+    record = setting as Record<string, unknown>
+  }
+  const avatar = record?.avatar
+  if (typeof avatar !== 'string' || !storedAvatarPattern.test(avatar)) {
+    return undefined
+  }
+  return avatar
+}
+
 export function getUserAvatarFallback(name: string): string {
   return name.trim().charAt(0).toUpperCase() || '?'
 }

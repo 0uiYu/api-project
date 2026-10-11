@@ -1,12 +1,14 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test, vi } from 'vitest'
 
 const { createInstance } = await import('i18next')
 const { I18nextProvider, initReactI18next } = await import('react-i18next')
 const { QueryClient, QueryClientProvider } =
   await import('@tanstack/react-query')
 const { api } = await import('@/lib/api')
-const { ApiKeysProvider } = await import('../api-keys-provider')
+const { ApiKeysCreateRequest, ApiKeysProvider } =
+  await import('../api-keys-provider')
+const { ApiKeysDialogs } = await import('../api-keys-dialogs')
 const { ApiKeysMutateDrawer } = await import('../api-keys-mutate-drawer')
 
 const i18n = createInstance()
@@ -186,6 +188,30 @@ afterEach(() => {
 })
 
 describe('API keys mutate drawer Auto group integration', () => {
+  test('opens the create form when the page is asked to create a key', async () => {
+    installApiFixtures([])
+    const onHandled = vi.fn()
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    render(
+      <QueryClientProvider client={queryClient}>
+        <I18nextProvider i18n={i18n}>
+          <ApiKeysProvider>
+            <ApiKeysCreateRequest requested onHandled={onHandled} />
+            <ApiKeysDialogs />
+          </ApiKeysProvider>
+        </I18nextProvider>
+      </QueryClientProvider>
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: 'Create API Key' })
+    ).toBeVisible()
+    expect(onHandled).toHaveBeenCalledTimes(1)
+    queryClient.clear()
+  })
+
   test('inherits the root Auto order and sends an empty override for every batch-created key', async () => {
     const createdPayloads: Array<Record<string, unknown>> = []
     installApiFixtures(createdPayloads)

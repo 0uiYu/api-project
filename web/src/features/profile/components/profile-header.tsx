@@ -1,11 +1,24 @@
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 
 import { StatusBadge } from '@/components/status-badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Card, CardContent } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getUserAvatarFallback, getUserAvatarStyle } from '@/lib/avatar'
+import { updateUserProfile } from '@/features/profile/api'
+import {
+  AvatarImageError,
+  prepareAvatarDataUrl,
+} from '@/features/profile/lib/avatar-image'
+import {
+  getStoredUserAvatar,
+  getUserAvatarFallback,
+  getUserAvatarStyle,
+} from '@/lib/avatar'
+import { handleServerError } from '@/lib/handle-server-error'
 import { getRoleLabel } from '@/lib/roles'
+import { useAuthStore } from '@/stores/auth-store'
 
 import { getDisplayName } from '../lib'
 import type { UserProfile } from '../types'
@@ -17,31 +30,44 @@ import type { UserProfile } from '../types'
 interface ProfileHeaderProps {
   profile: UserProfile | null
   loading: boolean
+  onUpdate?: () => void | Promise<void>
 }
 
-export function ProfileHeader({ profile, loading }: ProfileHeaderProps) {
+export function ProfileHeader(props: ProfileHeaderProps) {
   const { t } = useTranslation()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+  const [avatarOverride, setAvatarOverride] = useState<string | null>(null)
+  const profile = props.profile
+  const loading = props.loading
+
+  useEffect(() => {
+    if (avatarOverride === null || !profile) return
+    const stored = getStoredUserAvatar(profile.setting)
+    const expected = avatarOverride || undefined
+    if (stored !== expected) return
+    const current = useAuthStore.getState().auth.user
+    if (current) {
+      useAuthStore.getState().auth.setUser({
+        ...current,
+        setting: profile.setting,
+      })
+    }
+    setAvatarOverride(null)
+  }, [avatarOverride, profile])
 
   if (loading) {
     return (
-      <Card data-card-hover='false' className='gap-0 overflow-hidden py-0'>
-        <CardContent className='p-4 sm:p-5'>
-          <div className='flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left'>
-            <Skeleton className='h-16 w-16 rounded-2xl' />
-            <div className='space-y-3'>
-              <div className='flex flex-col items-center gap-2 sm:flex-row sm:justify-start'>
-                <Skeleton className='h-8 w-48' />
-                <Skeleton className='h-5 w-16' />
-              </div>
-              <div className='flex flex-col items-center gap-1 sm:flex-row sm:justify-start sm:gap-4'>
-                <Skeleton className='h-4 w-24' />
-                <Skeleton className='h-4 w-40' />
-                <Skeleton className='h-4 w-20' />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div
+        data-slot='profile-identity'
+        className='flex items-center gap-4 border-b border-[#E7EEF6] bg-[#F4F8FC] px-4 py-5 sm:px-6'
+      >
+        <Skeleton className='size-14 rounded-2xl bg-[#E2E8F0]' />
+        <div className='flex flex-col gap-2'>
+          <Skeleton className='h-6 w-40 bg-[#E2E8F0]' />
+          <Skeleton className='h-4 w-56 bg-[#E2E8F0]' />
+        </div>
+      </div>
     )
   }
 
@@ -51,55 +77,165 @@ export function ProfileHeader({ profile, loading }: ProfileHeaderProps) {
   const avatarName = profile.username || displayName
   const avatarFallback = getUserAvatarFallback(avatarName)
   const avatarFallbackStyle = getUserAvatarStyle(avatarName)
+  const storedAvatar = getStoredUserAvatar(profile.setting)
+  const avatar =
+    avatarOverride === null ? storedAvatar : avatarOverride || undefined
   const roleLabel = getRoleLabel(profile.role)
+
+  const saveAvatar = async (nextAvatar: string) => {
+    setUploading(true)
+    try {
+      const response = await updateUserProfile({ avatar: nextAvatar })
+      if (!response.success) {
+        handleServerError(response, t('Failed to update profile'))
+        return
+      }
+      setAvatarOverride(nextAvatar)
+      const current = useAuthStore.getState().auth.user
+      if (current) {
+        let nextSetting: Record<string, unknown> = {}
+        const currentSetting = current.setting
+        if (typeof currentSetting === 'string') {
+          try {
+            const parsed: unknown = JSON.parse(currentSetting)
+            if (
+              parsed &&
+              typeof parsed === 'object' &&
+              !Array.isArray(parsed)
+            ) {
+              nextSetting = { ...(parsed as Record<string, unknown>) }
+            }
+          } catch {
+            nextSetting = {}
+          }
+        } else if (
+          currentSetting &&
+          typeof currentSetting === 'object' &&
+          !Array.isArray(currentSetting)
+        ) {
+          nextSetting = { ...currentSetting }
+        }
+        if (nextAvatar) nextSetting.avatar = nextAvatar
+        else delete nextSetting.avatar
+        useAuthStore.getState().auth.setUser({
+          ...current,
+          setting: nextSetting,
+        })
+      }
+      toast.success(t('Profile updated successfully'))
+      await props.onUpdate?.()
+    } catch (error) {
+      handleServerError(error, t('Failed to update profile'))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleAvatarFile = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      await saveAvatar(await prepareAvatarDataUrl(file))
+    } catch (error) {
+      const tooLarge =
+        error instanceof AvatarImageError && error.reason === 'size'
+      const message = tooLarge
+        ? 'Avatar image is too large'
+        : 'Choose a PNG, JPEG, or WebP image'
+      toast.error(t(message))
+    }
+  }
+
   return (
-    <Card data-card-hover='false' className='gap-0 overflow-hidden py-0'>
-      <CardContent className='p-3 sm:p-5'>
-        <div className='flex items-center gap-3 text-left sm:gap-4'>
-          <Avatar className='ring-background h-12 w-12 rounded-xl text-sm ring-2 sm:h-16 sm:w-16 sm:rounded-2xl sm:text-lg sm:ring-4'>
+    <header
+      data-slot='profile-identity'
+      className='flex flex-col gap-4 border-b border-[#E7EEF6] bg-[#F4F8FC] px-4 py-5 sm:flex-row sm:items-center sm:px-6'
+    >
+      <div className='flex min-w-0 flex-1 items-center gap-4'>
+        <div className='rounded-2xl border border-[#D7E4F7] bg-white p-1'>
+          <Avatar className='size-12 rounded-xl text-sm sm:size-14'>
+            {avatar && (
+              <AvatarImage
+                src={avatar}
+                alt={t('Avatar')}
+                className='rounded-xl'
+              />
+            )}
             <AvatarFallback
-              className='rounded-xl font-semibold text-white sm:rounded-2xl'
+              className='rounded-xl font-semibold text-white'
               style={avatarFallbackStyle}
             >
               {avatarFallback}
             </AvatarFallback>
           </Avatar>
-
-          <div className='min-w-0 flex-1 space-y-1.5 sm:space-y-3'>
-            <div className='flex min-w-0 items-center gap-2'>
-              <h1 className='truncate text-xl font-semibold tracking-tight sm:text-2xl'>
-                {displayName}
-              </h1>
-              <StatusBadge
-                label={roleLabel}
-                variant='neutral'
-                copyable={false}
-              />
-              <StatusBadge
-                label={`${t('User ID')} ${profile.id}`}
-                variant='info'
-                copyText={String(profile.id)}
-              />
-            </div>
-
-            <div className='text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs sm:gap-x-4 sm:text-sm'>
-              <span className='truncate'>@{profile.username}</span>
-              {profile.email && (
-                <>
-                  <span>•</span>
-                  <span className='truncate'>{profile.email}</span>
-                </>
-              )}
-              {profile.group && (
-                <>
-                  <span>•</span>
-                  <span className='truncate'>{profile.group}</span>
-                </>
-              )}
-            </div>
-          </div>
         </div>
-      </CardContent>
-    </Card>
+
+        <div className='min-w-0'>
+          <div className='flex min-w-0 flex-wrap items-center gap-2'>
+            <p className='truncate text-xl font-semibold tracking-tight text-[#17243D]'>
+              {displayName}
+            </p>
+            <StatusBadge label={roleLabel} variant='neutral' copyable={false} />
+            <StatusBadge
+              label={`${t('User ID')} ${profile.id}`}
+              variant='info'
+              copyText={String(profile.id)}
+            />
+          </div>
+          <p className='mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-[#64748B]'>
+            <span className='truncate'>@{profile.username}</span>
+            {profile.email ? (
+              <>
+                <span aria-hidden='true'>·</span>
+                <span className='truncate'>{profile.email}</span>
+              </>
+            ) : null}
+            {profile.group ? (
+              <>
+                <span aria-hidden='true'>·</span>
+                <span className='truncate'>{profile.group}</span>
+              </>
+            ) : null}
+          </p>
+        </div>
+      </div>
+
+      <div
+        data-slot='profile-identity-actions'
+        className='flex shrink-0 flex-wrap items-center gap-2 sm:ms-auto'
+      >
+        <Button
+          type='button'
+          variant='outline'
+          size='sm'
+          disabled={uploading}
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {t('Upload avatar')}
+        </Button>
+        {avatar ? (
+          <Button
+            type='button'
+            variant='ghost'
+            size='sm'
+            disabled={uploading}
+            onClick={() => void saveAvatar('')}
+          >
+            {t('Remove avatar')}
+          </Button>
+        ) : null}
+        <input
+          ref={fileInputRef}
+          type='file'
+          accept='image/png,image/jpeg,image/webp'
+          className='sr-only'
+          aria-label={t('Avatar file')}
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            event.target.value = ''
+            void handleAvatarFile(file)
+          }}
+        />
+      </div>
+    </header>
   )
 }

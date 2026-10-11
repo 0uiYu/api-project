@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { ROLE } from '@/lib/roles'
+import { computeTimeRange } from '@/lib/time'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -225,6 +226,15 @@ export function Dashboard() {
     []
   )
 
+  const modelChartRange = useMemo(
+    () =>
+      computeTimeRange(
+        getDefaultDays(modelFilters.time_granularity),
+        modelFilters.start_timestamp,
+        modelFilters.end_timestamp
+      ),
+    [modelFilters]
+  )
   const meta = SECTION_META[activeSection] ?? SECTION_META.overview
   const isAdmin = Boolean(userRole && userRole >= ROLE.ADMIN)
   const visibleSections = useMemo(
@@ -356,6 +366,10 @@ export function Dashboard() {
                     timeGranularity={
                       modelFilters.time_granularity || DEFAULT_TIME_GRANULARITY
                     }
+                    timeRange={{
+                      start: modelChartRange.start_timestamp,
+                      end: modelChartRange.end_timestamp,
+                    }}
                   />
                 </Suspense>
               </FadeIn>
@@ -368,6 +382,10 @@ export function Dashboard() {
                     timeGranularity={
                       modelFilters.time_granularity || DEFAULT_TIME_GRANULARITY
                     }
+                    timeRange={{
+                      start: modelChartRange.start_timestamp,
+                      end: modelChartRange.end_timestamp,
+                    }}
                   />
                 </Suspense>
               </FadeIn>

@@ -106,7 +106,7 @@ afterEach(async () => {
   await i18next.changeLanguage('en')
 })
 
-it('applies the selected mobile date range directly and resets pagination while retaining filters', async () => {
+it('applies the selected mobile date range directly and keeps the visible result filter', async () => {
   const router = await renderMobileFilter()
   const user = userEvent.setup()
   await user.click(screen.getByRole('button', { name: /^\d{4}-\d{2}/ }))
@@ -120,12 +120,12 @@ it('applies the selected mobile date range directly and resets pagination while 
   await waitFor(() =>
     expect(router.state.location.search).toMatchObject({
       page: 1,
-      group: 'default',
       type: ['2'],
       startTime: new Date('2026-09-07T09:30').getTime(),
       endTime: new Date('2026-09-08T17:45').getTime(),
     })
   )
+  expect(router.state.location.search).not.toHaveProperty('group')
 })
 
 it('applies mobile drawer filters only when Search is pressed', async () => {

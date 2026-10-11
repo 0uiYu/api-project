@@ -1,6 +1,9 @@
 import { api } from '@/lib/api'
 
 import type {
+  AffiliateCodeResponse,
+  AffiliateTransferRequest,
+  AffiliateTransferResponse,
   BillingHistoryResponse,
   RedemptionRequest,
   RedemptionResponse,
@@ -32,6 +35,18 @@ export async function redeemTopupCode(
 /**
  * Get topup history for the current user
  */
+export async function getAffiliateCode(): Promise<AffiliateCodeResponse> {
+  const res = await api.get('/api/user/aff')
+  return res.data
+}
+
+export async function transferAffiliateQuota(
+  request: AffiliateTransferRequest
+): Promise<AffiliateTransferResponse> {
+  const res = await api.post('/api/user/aff_transfer', request)
+  return res.data
+}
+
 export async function getUserBillingHistory(
   page: number,
   pageSize: number

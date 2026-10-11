@@ -87,6 +87,28 @@ function unorderedUsage(start: string, interval: number): QuotaDataItem[] {
   ]
 }
 
+test('keeps dated axis labels when the selected range has no usage', () => {
+  const start = new Date('2026-10-05T12:00:00').getTime() / 1000
+  const end = new Date('2026-10-11T12:00:00').getTime() / 1000
+  const result = processChartData([], 'day', undefined, undefined, {
+    start,
+    end,
+  })
+  const labels = ['10-05', '10-06', '10-07', '10-08', '10-09', '10-10', '10-11']
+
+  for (const key of ['spec_line', 'spec_area'] as const) {
+    const values: Array<{ Time: string; Usage: number }> =
+      result[key].data[0].values
+    expect(values.map((row) => row.Time)).toEqual(labels)
+    expect(values.every((row) => row.Usage === 0)).toBe(true)
+  }
+
+  const counts: Array<{ Time: string; Count: number }> =
+    result.spec_model_line.data[0].values
+  expect(counts.map((row) => row.Time)).toEqual(labels)
+  expect(counts.every((row) => row.Count === 0)).toBe(true)
+})
+
 describe.each(cases)('dashboard $granularity chart chronology', (scenario) => {
   test('orders model buckets across New Year while aggregating repeated labels', () => {
     const data = unorderedUsage(scenario.start, scenario.interval)

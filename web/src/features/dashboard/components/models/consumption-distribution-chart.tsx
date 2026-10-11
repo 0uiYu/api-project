@@ -27,6 +27,7 @@ interface ConsumptionDistributionChartProps {
   data: QuotaDataItem[]
   loading?: boolean
   timeGranularity?: TimeGranularity
+  timeRange?: { start: number; end: number }
   defaultChartType?: ConsumptionDistributionChartType
 }
 
@@ -86,9 +87,17 @@ export function ConsumptionDistributionChart(
         props.loading ? [] : props.data,
         timeGranularity,
         t,
-        chartRadius
+        chartRadius,
+        props.timeRange
       ),
-    [props.data, props.loading, timeGranularity, t, chartRadius]
+    [
+      props.data,
+      props.loading,
+      props.timeRange,
+      timeGranularity,
+      t,
+      chartRadius,
+    ]
   )
   const spec = chartType === 'bar' ? chartData.spec_line : chartData.spec_area
   const specType = typeof spec?.type === 'string' ? spec.type : chartType

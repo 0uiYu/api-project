@@ -56,41 +56,38 @@ export function LoadingSkeleton(props: LoadingSkeletonProps) {
               ))}
             </div>
           ) : (
-            <div className='grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3'>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3'>
               {Array.from({ length: 6 }, (_, index) => (
-                <Card key={index} className='gap-3'>
-                  <CardHeader className='flex flex-row gap-3'>
-                    <Skeleton className='size-10 shrink-0' />
+                <Card
+                  key={index}
+                  className='gap-0 overflow-hidden rounded-2xl border border-t-2 border-[#E2E8F0] border-t-[#2563EB] bg-white py-0 ring-0'
+                >
+                  <CardHeader className='flex flex-row gap-3 border-b border-[#E7EEF6] bg-[#F4F8FC] px-4 py-3.5'>
+                    <Skeleton className='size-10 shrink-0 rounded-lg' />
                     <div className='flex min-w-0 flex-1 flex-col gap-2'>
                       <Skeleton className='h-5 w-40 max-w-full' />
                       <Skeleton className='h-3 w-20' />
                     </div>
                     <Skeleton className='size-7 shrink-0' />
                   </CardHeader>
-                  <CardContent className='flex flex-1 flex-col gap-3'>
-                    <div className='flex flex-col gap-2'>
-                      <Skeleton className='h-3.5 w-full' />
-                      <Skeleton className='h-3.5 w-4/5' />
+                  <CardContent className='flex flex-1 flex-col gap-3 px-4 py-3.5'>
+                    <Skeleton className='h-4 w-16' />
+                    <div className='grid grid-cols-3 gap-4'>
+                      <Skeleton className='h-10' />
+                      <Skeleton className='h-10' />
+                      <Skeleton className='h-10' />
                     </div>
-                    <div className='mt-auto flex flex-col gap-1.5'>
-                      <Skeleton className='h-4 w-16' />
-                      <div className='grid grid-cols-3 gap-3'>
-                        <Skeleton className='h-10' />
-                        <Skeleton className='h-10' />
-                        <Skeleton className='h-10' />
-                      </div>
-                    </div>
-                    <div className='grid grid-cols-2 gap-3'>
+                    <div className='grid grid-cols-2 gap-3 border-t border-[#E7EEF6] pt-3'>
                       <Skeleton className='h-4 w-28 max-w-full' />
                       <Skeleton className='h-4 w-28 max-w-full' />
                     </div>
                   </CardContent>
-                  <CardFooter className='border-0 bg-transparent pt-0'>
-                    <div className='border-border/60 flex w-full items-center justify-between gap-3 border-t pt-2'>
+                  <CardFooter className='border-0 bg-[#F8FAFD] px-4 py-3'>
+                    <div className='flex w-full items-center justify-between gap-3'>
                       <div className='flex items-start gap-5'>
                         <div className='flex w-24 shrink-0 flex-col gap-1'>
                           <Skeleton className='h-4 w-10' />
-                          <div className='flex h-3 items-center justify-between'>
+                          <div className='flex h-3 w-24 items-center gap-px'>
                             {Array.from({ length: 24 }, (_, bar) => (
                               <Skeleton
                                 key={bar}

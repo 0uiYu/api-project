@@ -68,17 +68,12 @@ export function SidebarModulesCard() {
       modules: [
         {
           key: 'topup',
-          title: t('Wallet Management'),
+          title: t('Account Balance'),
           description: t('Balance and top-up management'),
         },
         {
-          key: 'personal',
-          title: t('Personal Settings'),
-          description: t('Personal info settings'),
-        },
-        {
           key: 'security',
-          title: t('Security & Access'),
+          title: t('Profile'),
           description: t('Manage your security settings and account access'),
         },
       ],

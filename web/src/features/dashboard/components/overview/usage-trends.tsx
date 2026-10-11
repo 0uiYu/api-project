@@ -138,6 +138,10 @@ export function UsageTrends() {
           data={data}
           loading={loading}
           timeGranularity={granularity}
+          timeRange={{
+            start: timeRange.start_timestamp,
+            end: timeRange.end_timestamp,
+          }}
         />
       </Suspense>
 
@@ -146,6 +150,10 @@ export function UsageTrends() {
           data={data}
           loading={loading}
           timeGranularity={granularity}
+          timeRange={{
+            start: timeRange.start_timestamp,
+            end: timeRange.end_timestamp,
+          }}
         />
       </Suspense>
     </div>

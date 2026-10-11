@@ -72,6 +72,7 @@ async function renderFilter(
     routeTree: root.addChildren([auth.addChildren([logs])]),
     history: createMemoryHistory({ initialEntries: [initialEntry] }),
   })
+  useAuthStore.getState().auth.setUser({ id: 1, username: 'viewer', role: 10 })
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -104,7 +105,7 @@ afterEach(() => {
   }
 })
 
-it('loads personal groups and filters choices without submitting until Search', async () => {
+it('filters administrator group choices without submitting until Search', async () => {
   const router = await renderFilter()
   const input = screen.getByRole('combobox', { name: 'Group' })
   await userEvent.click(input)
@@ -123,8 +124,8 @@ it('loads personal groups and filters choices without submitting until Search', 
       page: 1,
     })
   )
-  expect(api.get).toHaveBeenCalledWith('/api/user/self/groups')
-  expect(api.get).not.toHaveBeenCalledWith('/api/group/')
+  expect(api.get).toHaveBeenCalledWith('/api/group/')
+  expect(api.get).not.toHaveBeenCalledWith('/api/user/self/groups')
 })
 
 it('loads all groups in the administrator view', async () => {
@@ -247,27 +248,21 @@ it('lets mobile users select a long group name inside the filter drawer and subm
   )
 })
 
-it.each([1, 10])(
-  'excludes only auto from group choices for role %s',
-  async (role) => {
-    useAuthStore.getState().auth.setUser({ id: 1, username: 'viewer', role })
-    const router = await renderFilter('/usage-logs/common', {
-      auto: { desc: '', ratio: 1 },
-      'auto-team': { desc: '', ratio: 1 },
-    })
-    const input = screen.getByRole('combobox', { name: 'Group' })
-    await userEvent.click(input)
-    const option = await screen.findByRole('option', { name: 'auto-team' })
-    expect(
-      screen.queryByRole('option', { name: 'auto' })
-    ).not.toBeInTheDocument()
-    await userEvent.click(option)
-    await userEvent.click(screen.getByRole('button', { name: 'Search' }))
-    await waitFor(() =>
-      expect(router.state.location.search).toMatchObject({ group: 'auto-team' })
-    )
-  }
-)
+it('excludes only auto from administrator group choices', async () => {
+  const router = await renderFilter('/usage-logs/common', {
+    auto: { desc: '', ratio: 1 },
+    'auto-team': { desc: '', ratio: 1 },
+  })
+  const input = screen.getByRole('combobox', { name: 'Group' })
+  await userEvent.click(input)
+  const option = await screen.findByRole('option', { name: 'auto-team' })
+  expect(screen.queryByRole('option', { name: 'auto' })).not.toBeInTheDocument()
+  await userEvent.click(option)
+  await userEvent.click(screen.getByRole('button', { name: 'Search' }))
+  await waitFor(() =>
+    expect(router.state.location.search).toMatchObject({ group: 'auto-team' })
+  )
+})
 
 it('keeps historical auto values editable when auto is the only available group', async () => {
   const router = await renderFilter('/usage-logs/common?group=auto', {

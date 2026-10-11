@@ -170,3 +170,26 @@ export const useApiKeys = () => {
 
   return apiKeysContext
 }
+
+export function ApiKeysCreateRequest(props: {
+  requested: boolean
+  onHandled: () => void
+}) {
+  const { setOpen } = useApiKeys()
+  const handled = React.useRef(false)
+  const requested = props.requested
+  const onHandled = props.onHandled
+
+  React.useEffect(() => {
+    if (!requested) {
+      handled.current = false
+      return
+    }
+    if (handled.current) return
+    handled.current = true
+    setOpen('create')
+    onHandled()
+  }, [onHandled, requested, setOpen])
+
+  return null
+}

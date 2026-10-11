@@ -35,6 +35,7 @@ interface ModelChartsProps {
   data: QuotaDataItem[]
   loading?: boolean
   timeGranularity?: TimeGranularity
+  timeRange?: { start: number; end: number }
   defaultChartTab?: ModelAnalyticsChartTab
 }
 
@@ -84,9 +85,17 @@ export function ModelCharts(props: ModelChartsProps) {
         props.loading ? [] : props.data,
         timeGranularity,
         t,
-        chartRadius
+        chartRadius,
+        props.timeRange
       ),
-    [props.data, props.loading, timeGranularity, t, chartRadius]
+    [
+      props.data,
+      props.loading,
+      props.timeRange,
+      timeGranularity,
+      t,
+      chartRadius,
+    ]
   )
 
   const spec = chartData[CHART_SPEC_KEYS[activeTab]]

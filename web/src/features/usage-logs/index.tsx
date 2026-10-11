@@ -121,10 +121,13 @@ function UsageLogsContent() {
           )}
         </SectionPageLayout.Actions>
         <SectionPageLayout.Content>
-          <div className='flex h-full min-h-0 flex-col gap-4'>
+          <div
+            data-slot='usage-record-surface'
+            className='flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-t-2 border-[#E2E8F0] border-t-[#2563EB] bg-white text-[#17243D] shadow-[0_18px_36px_-30px_rgba(30,58,138,0.45)] [--accent-foreground:#17243D] [--accent:#F4F8FC] [--background:#ffffff] [--border:#E2E8F0] [--card-foreground:#17243D] [--card:#ffffff] [--foreground:#17243D] [--input:#E2E8F0] [--muted-foreground:#64748B] [--muted:#F4F8FC] [--popover-foreground:#17243D] [--popover:#ffffff] [--primary-foreground:#ffffff] [--primary:#2563EB] [--ring:#2563EB] [--table-header-hover:#EAF1FA] [--table-header:#F4F8FC] [--table-row:#ffffff]'
+          >
             {showTaskSwitcher && (
               <Tabs value={activeCategory} onValueChange={handleSectionChange}>
-                <TabsList className='max-w-full flex-wrap justify-start group-data-horizontal/tabs:h-auto'>
+                <TabsList className='h-auto max-w-full flex-wrap justify-start rounded-none border-b border-[#E7EEF6] bg-[#F4F8FC] px-3 py-2'>
                   {visibleSections.map((section) => (
                     <TabsTrigger key={section} value={section}>
                       {t(SECTION_META[section].titleKey)}
@@ -133,7 +136,7 @@ function UsageLogsContent() {
                 </TabsList>
               </Tabs>
             )}
-            <div className='min-h-0 flex-1'>
+            <div className='flex min-h-0 flex-1 flex-col'>
               <UsageLogsTable logCategory={activeCategory} />
             </div>
           </div>

@@ -13,8 +13,8 @@ import type { UserWalletData } from './types'
 
 /**
  * Wallet: current balance, a link to buy quota, redemption code topup and the
- * topup history dialog. Online payment, subscription plans, affiliate rewards
- * and billing management were removed.
+ * topup history dialog. Referral rewards and subscription purchase live on
+ * their own console pages. Online quota payment stays off this page.
  */
 export function Wallet() {
   const { t } = useTranslation()
@@ -59,7 +59,7 @@ export function Wallet() {
         <div className='min-h-0 flex-1 overflow-auto'>
           <div className='mx-auto w-full max-w-3xl px-3 py-6 sm:px-4 sm:py-8'>
             <h1 className='text-foreground text-lg font-semibold tracking-tight sm:text-xl'>
-              {t('Wallet')}
+              {t('Account Balance')}
             </h1>
 
             <div className='mt-4 flex flex-col gap-4'>
