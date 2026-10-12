@@ -4,9 +4,15 @@ import {
   QUOTA_TYPES,
   QUOTA_TYPE_VALUES,
   ENDPOINT_TYPES,
+  CAPABILITY_ENDPOINTS,
+  PRICE_RANGES,
 } from '../constants'
 import type { PricingModel } from '../types'
-import { hasTaskUsageSchema } from './dynamic-price'
+import {
+  getDynamicDisplayGroupRatio,
+  hasTaskUsageSchema,
+} from './dynamic-price'
+import { getInputPricePerMillion } from './price'
 
 // ----------------------------------------------------------------------------
 // Filter Utilities
@@ -38,8 +44,11 @@ export function filterByVendor(
   models: PricingModel[],
   vendor: string
 ): PricingModel[] {
-  if (vendor === FILTER_ALL) return models
-  return models.filter((m) => m.vendor_name === vendor)
+  const selected = parseTagFilter(vendor)
+  if (selected.length === 0) return models
+  return models.filter(
+    (m) => !!m.vendor_name && selected.includes(m.vendor_name)
+  )
 }
 
 /**
@@ -88,6 +97,71 @@ export function filterByEndpointType(
 }
 
 /**
+ * Filter by user-facing capability (chat / image / video …), which maps onto
+ * one or more upstream endpoint types.
+ */
+export function filterByCapability(
+  models: PricingModel[],
+  capability: string
+): PricingModel[] {
+  const selected = parseTagFilter(capability)
+  if (selected.length === 0) return models
+
+  const endpoints = new Set(
+    selected.flatMap(
+      (value) =>
+        CAPABILITY_ENDPOINTS[value as keyof typeof CAPABILITY_ENDPOINTS] ?? []
+    )
+  )
+  if (endpoints.size === 0) return models
+
+  return models.filter((m) =>
+    (m.supported_endpoint_types ?? []).some((type) => endpoints.has(type))
+  )
+}
+
+/**
+ * Filter by price bucket, in USD per 1M input tokens. Metered models (per
+ * request or task-billed) form their own bucket because their price has no
+ * per-token meaning.
+ */
+export function filterByPrice(
+  models: PricingModel[],
+  range: string,
+  selectedGroup?: string
+): PricingModel[] {
+  if (!range || range === FILTER_ALL) return models
+
+  return models.filter((model) => {
+    const metered =
+      model.quota_type !== QUOTA_TYPE_VALUES.TOKEN || hasTaskUsageSchema(model)
+    if (range === PRICE_RANGES.METERED) return metered
+    if (metered) return false
+
+    const price = getInputPricePerMillion(
+      model,
+      getDynamicDisplayGroupRatio(model, selectedGroup)
+    )
+    if (!Number.isFinite(price)) return false
+
+    switch (range) {
+      case PRICE_RANGES.NO_COST:
+        return price <= 0
+      case PRICE_RANGES.LOW:
+        return price > 0 && price <= 1
+      case PRICE_RANGES.MID:
+        return price > 1 && price <= 5
+      case PRICE_RANGES.HIGH:
+        return price > 5 && price <= 20
+      case PRICE_RANGES.PREMIUM:
+        return price > 20
+      default:
+        return true
+    }
+  })
+}
+
+/**
  * Get model price for sorting
  */
 function getModelPrice(model: PricingModel): number {
@@ -129,17 +203,18 @@ export function filterAndSortModels(
     search: string
     vendor: string
     group: string
-    quotaType: string
-    endpointType: string
+    capability: string
+    price: string
     tag: string
     sortBy: string
+    selectedGroup?: string
   }
 ): PricingModel[] {
   let result = filterBySearch(models, filters.search)
   result = filterByVendor(result, filters.vendor)
   result = filterByGroup(result, filters.group)
-  result = filterByQuotaType(result, filters.quotaType)
-  result = filterByEndpointType(result, filters.endpointType)
+  result = filterByCapability(result, filters.capability)
+  result = filterByPrice(result, filters.price, filters.selectedGroup)
   result = filterByTag(result, filters.tag)
   result = sortModels(result, filters.sortBy)
 
@@ -172,22 +247,35 @@ export function extractAllTags(models: PricingModel[]): string[] {
     }
   })
 
-  return Array.from(tagSet).sort((a, b) => a.localeCompare(b))
+  return [...tagSet].sort((a, b) => a.localeCompare(b))
 }
 
 /**
- * Filter models by tag
+ * Split the comma-joined tag expression carried by the search params.
+ */
+export function parseTagFilter(value: string): string[] {
+  if (!value || value === FILTER_ALL) return []
+  return value
+    .split(',')
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+}
+
+/**
+ * Filter models by tag. The expression may hold several tags; a model matches
+ * when it carries any of them.
  */
 export function filterByTag(
   models: PricingModel[],
   tag: string
 ): PricingModel[] {
-  if (tag === FILTER_ALL) return models
+  const selected = new Set(
+    parseTagFilter(tag).map((value) => value.toLowerCase())
+  )
+  if (selected.size === 0) return models
 
-  const tagLower = tag.toLowerCase()
   return models.filter((m) => {
     if (!m.tags) return false
-    const modelTags = parseTags(m.tags).map((t) => t.toLowerCase())
-    return modelTags.includes(tagLower)
+    return parseTags(m.tags).some((value) => selected.has(value.toLowerCase()))
   })
 }

@@ -1,4 +1,4 @@
-import { type TFunction } from 'i18next'
+import type { TFunction } from 'i18next'
 
 import type { TokenUnit } from './types'
 
@@ -90,11 +90,87 @@ export const FILTER_SECTIONS = {
   TAG: 'tag',
 } as const
 
+/**
+ * Capability buckets. Users think in tasks ("chat", "image", "video"), not in
+ * upstream endpoint identifiers, so the filter exposes these instead of the
+ * raw endpoint types.
+ */
+export const CAPABILITIES = {
+  CHAT: 'chat',
+  IMAGE: 'image',
+  EMBEDDINGS: 'embeddings',
+  VIDEO: 'video',
+  RERANK: 'rerank',
+} as const
+
+export type CapabilityOption = (typeof CAPABILITIES)[keyof typeof CAPABILITIES]
+
+/** Which endpoint types each capability covers. */
+export const CAPABILITY_ENDPOINTS: Record<CapabilityOption, string[]> = {
+  [CAPABILITIES.CHAT]: [
+    ENDPOINT_TYPES.OPENAI,
+    ENDPOINT_TYPES.OPENAI_RESPONSE,
+    ENDPOINT_TYPES.ANTHROPIC,
+    ENDPOINT_TYPES.GEMINI,
+  ],
+  [CAPABILITIES.IMAGE]: [ENDPOINT_TYPES.IMAGE_GENERATION],
+  [CAPABILITIES.EMBEDDINGS]: [ENDPOINT_TYPES.EMBEDDINGS],
+  [CAPABILITIES.VIDEO]: [ENDPOINT_TYPES.OPENAI_VIDEO],
+  [CAPABILITIES.RERANK]: [ENDPOINT_TYPES.JINA_RERANK],
+}
+
+export function getCapabilityLabels(
+  t: TFunction
+): Record<CapabilityOption, string> {
+  return {
+    [CAPABILITIES.CHAT]: t('Chat'),
+    [CAPABILITIES.IMAGE]: t('Image'),
+    [CAPABILITIES.EMBEDDINGS]: t('Embeddings'),
+    [CAPABILITIES.VIDEO]: t('Video'),
+    [CAPABILITIES.RERANK]: t('Rerank'),
+  }
+}
+
+/** Price buckets, in USD per 1M input tokens (per call for metered models). */
+export const PRICE_RANGES = {
+  NO_COST: 'no-cost',
+  LOW: 'low',
+  MID: 'mid',
+  HIGH: 'high',
+  PREMIUM: 'premium',
+  METERED: 'metered',
+} as const
+
+export type PriceRangeOption = (typeof PRICE_RANGES)[keyof typeof PRICE_RANGES]
+
+export function getPriceRangeLabels(
+  t: TFunction
+): Record<PriceRangeOption, string> {
+  return {
+    [PRICE_RANGES.NO_COST]: t('No cost'),
+    [PRICE_RANGES.LOW]: '≤ $1 / 1M',
+    [PRICE_RANGES.MID]: '$1 – $5 / 1M',
+    [PRICE_RANGES.HIGH]: '$5 – $20 / 1M',
+    [PRICE_RANGES.PREMIUM]: '> $20 / 1M',
+    [PRICE_RANGES.METERED]: t('Per request or task'),
+  }
+}
+
+/** Upper bound (USD per 1M input tokens) for each priced bucket. */
+export const PRICE_RANGE_LIMITS: Record<string, number> = {
+  [PRICE_RANGES.LOW]: 1,
+  [PRICE_RANGES.MID]: 5,
+  [PRICE_RANGES.HIGH]: 20,
+}
+
 /** Maximum number of tags to display in model row */
 export const MAX_TAGS_DISPLAY = 5
 
 /** Maximum number of filter items to display before showing "More..." */
 export const MAX_FILTER_ITEMS = 5
+
+/** Tags behave like a light multi-select: enough to combine, not to clog. */
+export const MAX_SELECTED_TAGS = 3
 
 /** Sidebar width */
 export const SIDEBAR_WIDTH = 'w-64'

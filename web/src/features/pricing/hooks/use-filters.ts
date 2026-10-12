@@ -5,8 +5,6 @@ import { useDebounce } from '@/hooks/use-debounce'
 import {
   FILTER_ALL,
   SORT_OPTIONS,
-  QUOTA_TYPES,
-  ENDPOINT_TYPES,
   DEFAULT_TOKEN_UNIT,
   VIEW_MODES,
   type ViewMode,
@@ -18,10 +16,14 @@ import type { PricingModel, TokenUnit } from '../types'
 type FilterState = {
   search?: string
   sort?: string
+  /** Comma-joined vendor names; empty means every vendor. */
   vendor?: string
   group?: string
-  quotaType?: string
-  endpointType?: string
+  /** Comma-joined capability keys (chat / image / video …). */
+  capability?: string
+  /** One price bucket key. */
+  price?: string
+  /** Comma-joined tag names. */
   tag?: string
   tokenUnit?: TokenUnit
   view?: ViewMode
@@ -44,8 +46,8 @@ export function useFilters(
     sort: initialSearch?.sort,
     vendor: initialSearch?.vendor,
     group: initialSearch?.group,
-    quotaType: initialSearch?.quotaType,
-    endpointType: initialSearch?.endpointType,
+    capability: initialSearch?.capability,
+    price: initialSearch?.price,
     tag: initialSearch?.tag,
     tokenUnit: initialSearch?.tokenUnit,
     view: initialSearch?.view,
@@ -57,8 +59,8 @@ export function useFilters(
   const sortBy = filterState.sort || SORT_OPTIONS.NAME
   const vendorFilter = filterState.vendor || FILTER_ALL
   const groupFilter = filterState.group || FILTER_ALL
-  const quotaTypeFilter = filterState.quotaType || QUOTA_TYPES.ALL
-  const endpointTypeFilter = filterState.endpointType || ENDPOINT_TYPES.ALL
+  const capabilityFilter = filterState.capability || FILTER_ALL
+  const priceFilter = filterState.price || FILTER_ALL
   const tagFilter = filterState.tag || FILTER_ALL
   const tokenUnit: TokenUnit =
     filterState.tokenUnit === 'K' ? 'K' : DEFAULT_TOKEN_UNIT
@@ -94,16 +96,13 @@ export function useFilters(
     (v: string) => updateFilters({ group: v === FILTER_ALL ? undefined : v }),
     [updateFilters]
   )
-  const setQuotaTypeFilter = useCallback(
+  const setCapabilityFilter = useCallback(
     (v: string) =>
-      updateFilters({ quotaType: v === QUOTA_TYPES.ALL ? undefined : v }),
+      updateFilters({ capability: v === FILTER_ALL ? undefined : v }),
     [updateFilters]
   )
-  const setEndpointTypeFilter = useCallback(
-    (v: string) =>
-      updateFilters({
-        endpointType: v === ENDPOINT_TYPES.ALL ? undefined : v,
-      }),
+  const setPriceFilter = useCallback(
+    (v: string) => updateFilters({ price: v === FILTER_ALL ? undefined : v }),
     [updateFilters]
   )
   const setTagFilter = useCallback(
@@ -137,18 +136,19 @@ export function useFilters(
       search: debouncedSearchInput,
       vendor: vendorFilter,
       group: groupFilter,
-      quotaType: quotaTypeFilter,
-      endpointType: endpointTypeFilter,
+      capability: capabilityFilter,
+      price: priceFilter,
       tag: tagFilter,
       sortBy,
+      selectedGroup: groupFilter === FILTER_ALL ? undefined : groupFilter,
     })
   }, [
     models,
     debouncedSearchInput,
     vendorFilter,
     groupFilter,
-    quotaTypeFilter,
-    endpointTypeFilter,
+    capabilityFilter,
+    priceFilter,
     tagFilter,
     sortBy,
   ])
@@ -157,28 +157,28 @@ export function useFilters(
     () =>
       vendorFilter !== FILTER_ALL ||
       groupFilter !== FILTER_ALL ||
-      quotaTypeFilter !== QUOTA_TYPES.ALL ||
-      endpointTypeFilter !== ENDPOINT_TYPES.ALL ||
+      capabilityFilter !== FILTER_ALL ||
+      priceFilter !== FILTER_ALL ||
       tagFilter !== FILTER_ALL,
-    [vendorFilter, groupFilter, quotaTypeFilter, endpointTypeFilter, tagFilter]
+    [vendorFilter, groupFilter, capabilityFilter, priceFilter, tagFilter]
   )
 
   const activeFilterCount = useMemo(
     () =>
       (vendorFilter !== FILTER_ALL ? 1 : 0) +
       (groupFilter !== FILTER_ALL ? 1 : 0) +
-      (quotaTypeFilter !== QUOTA_TYPES.ALL ? 1 : 0) +
-      (endpointTypeFilter !== ENDPOINT_TYPES.ALL ? 1 : 0) +
+      (capabilityFilter !== FILTER_ALL ? 1 : 0) +
+      (priceFilter !== FILTER_ALL ? 1 : 0) +
       (tagFilter !== FILTER_ALL ? 1 : 0),
-    [vendorFilter, groupFilter, quotaTypeFilter, endpointTypeFilter, tagFilter]
+    [vendorFilter, groupFilter, capabilityFilter, priceFilter, tagFilter]
   )
 
   const clearFilters = useCallback(() => {
     updateFilters({
       vendor: undefined,
       group: undefined,
-      quotaType: undefined,
-      endpointType: undefined,
+      capability: undefined,
+      price: undefined,
       tag: undefined,
     })
   }, [updateFilters])
@@ -192,8 +192,8 @@ export function useFilters(
     sortBy,
     vendorFilter,
     groupFilter,
-    quotaTypeFilter,
-    endpointTypeFilter,
+    capabilityFilter,
+    priceFilter,
     tagFilter,
     tokenUnit,
     viewMode,
@@ -202,8 +202,8 @@ export function useFilters(
     setSortBy,
     setVendorFilter,
     setGroupFilter,
-    setQuotaTypeFilter,
-    setEndpointTypeFilter,
+    setCapabilityFilter,
+    setPriceFilter,
     setTagFilter,
     setTokenUnit,
     setViewMode,

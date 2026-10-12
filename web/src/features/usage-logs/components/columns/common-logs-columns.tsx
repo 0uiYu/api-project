@@ -3,6 +3,7 @@ import { GitBranch, Sparkles, KeyRound } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { TokenSplitBar } from '@/components/console/panel'
 import { GroupBadge } from '@/components/group-badge'
 import { StatusBadge, type StatusBadgeProps } from '@/components/status-badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -742,6 +743,14 @@ export function useCommonLogsColumns(
                 {promptTokens.toLocaleString()} /{' '}
                 {completionTokens.toLocaleString()}
               </span>
+              {/* Shape of the request: one bar instead of three numbers to
+                  compare by hand. */}
+              <TokenSplitBar
+                input={promptTokens}
+                output={completionTokens}
+                cache={cacheReadTokens + cacheWriteTokens}
+                className='mt-1 max-w-[120px]'
+              />
               {(cacheReadTokens > 0 || cacheWriteTokens > 0) && (
                 <div className='flex items-center gap-1 text-[11px]'>
                   {cacheReadTokens > 0 && (

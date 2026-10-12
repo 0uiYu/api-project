@@ -1,8 +1,7 @@
+import { useTranslation } from 'react-i18next'
+
+import { MonoLabel } from '@/components/console/panel'
 import { Main } from '@/components/layout'
-import {
-  CardStaggerContainer,
-  CardStaggerItem,
-} from '@/components/page-transition'
 import { useStatus } from '@/hooks/use-status'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -11,6 +10,7 @@ import { SidebarModulesCard } from './components/sidebar-modules-card'
 import { useProfile } from './hooks'
 
 export function Profile() {
+  const { t } = useTranslation()
   useProfile()
   const { status } = useStatus()
   const permissions = useAuthStore((s) => s.auth.user?.permissions)
@@ -24,23 +24,29 @@ export function Profile() {
 
   return (
     <Main>
-      <div className='min-h-0 flex-1 overflow-auto px-3 py-3 sm:px-4 sm:py-6'>
-        <CardStaggerContainer className='mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6'>
-          {checkinEnabled && (
-            <CardStaggerItem>
+      <div className='min-h-0 flex-1 overflow-auto'>
+        <div className='mx-auto w-full max-w-7xl px-3 py-5 sm:px-4 sm:py-6'>
+          <header className='mb-3 flex items-center gap-2.5'>
+            <span
+              aria-hidden='true'
+              className='h-3.5 w-[3px] shrink-0 rounded-full bg-[#1E3A8A] dark:bg-[#60A5FA]'
+            />
+            <MonoLabel>{t('Profile')}</MonoLabel>
+          </header>
+
+          {/* Two columns instead of a single card stack: the check-in ledger
+              and the interface setup are separate concerns. */}
+          <div className='grid gap-3 lg:grid-cols-2 lg:items-start'>
+            {checkinEnabled && (
               <CheckinCalendarCard
                 checkinEnabled={checkinEnabled}
                 turnstileEnabled={turnstileEnabled}
                 turnstileSiteKey={turnstileSiteKey}
               />
-            </CardStaggerItem>
-          )}
-          {canConfigureSidebar && (
-            <CardStaggerItem>
-              <SidebarModulesCard />
-            </CardStaggerItem>
-          )}
-        </CardStaggerContainer>
+            )}
+            {canConfigureSidebar && <SidebarModulesCard />}
+          </div>
+        </div>
       </div>
     </Main>
   )

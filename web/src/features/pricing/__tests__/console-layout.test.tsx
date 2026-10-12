@@ -104,7 +104,10 @@ describe('model square layouts', () => {
       screen.queryByText(/This site currently has/)
     ).not.toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: 'Search models' })).toBeVisible()
-    expect(screen.getByRole('button', { name: /Filter/ })).toBeVisible()
+    // The catalog keeps its filters in one horizontal bar.
+    expect(screen.getByRole('button', { name: /Capability/ })).toBeVisible()
+    expect(screen.getByRole('button', { name: /^Price/ })).toBeVisible()
+    expect(screen.getByRole('button', { name: /Vendors/ })).toBeVisible()
   })
 
   it('keeps the hero copy on the public model square', async () => {

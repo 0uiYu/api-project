@@ -26,9 +26,8 @@ export function ApiKeyQuotaCell(props: ApiKeyQuotaCellProps) {
       data-slot='api-key-quota-values'
       title={value}
       className={cn(
-        'block max-w-full min-w-0 truncate text-sm font-medium',
+        'block max-w-full min-w-0 truncate font-mono text-sm font-medium tabular-nums text-[#17243D] dark:text-foreground',
         props.variant === 'card' && 'text-right',
-        !unlimited && 'tabular-nums',
         !unlimited && remaining < 0 && 'text-destructive',
         !unlimited && remaining === 0 && 'text-muted-foreground'
       )}

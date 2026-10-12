@@ -9,12 +9,11 @@ import {
   EmptyState,
   SearchBar,
   PricingTable,
-  PricingSidebar,
   PricingToolbar,
-  ModelCardGrid,
   ModelDetailsDrawer,
 } from './components'
-import { EXCLUDED_GROUPS, VIEW_MODES } from './constants'
+import { ModelCatalog } from './components/model-catalog'
+import { EXCLUDED_GROUPS, FILTER_ALL, VIEW_MODES } from './constants'
 import { useFilters } from './hooks/use-filters'
 import { usePricingData } from './hooks/use-pricing-data'
 import type { PricingSearch } from './search'
@@ -54,8 +53,8 @@ export function Pricing(props: PricingProps) {
     sortBy,
     vendorFilter,
     groupFilter,
-    quotaTypeFilter,
-    endpointTypeFilter,
+    capabilityFilter,
+    priceFilter,
     tagFilter,
     tokenUnit,
     viewMode,
@@ -64,8 +63,8 @@ export function Pricing(props: PricingProps) {
     setSortBy,
     setVendorFilter,
     setGroupFilter,
-    setQuotaTypeFilter,
-    setEndpointTypeFilter,
+    setCapabilityFilter,
+    setPriceFilter,
     setTagFilter,
     setTokenUnit,
     setViewMode,
@@ -80,6 +79,12 @@ export function Pricing(props: PricingProps) {
 
   const handleModelClick = useCallback((modelName: string) => {
     setSelectedModelName(modelName)
+  }, [])
+
+  const handleModelToggle = useCallback((modelName: string) => {
+    setSelectedModelName((current) =>
+      current === modelName ? null : modelName
+    )
   }, [])
 
   const selectedModel = useMemo(
@@ -118,14 +123,15 @@ export function Pricing(props: PricingProps) {
 
     if (viewMode === VIEW_MODES.CARD) {
       return (
-        <ModelCardGrid
+        <ModelCatalog
           models={filteredModels}
-          onModelClick={handleModelClick}
-          priceRate={priceRate}
-          usdExchangeRate={usdExchangeRate}
+          expandedModelName={selectedModelName}
+          onToggle={handleModelToggle}
           tokenUnit={tokenUnit}
           showRechargePrice={showRechargePrice}
-          selectedGroup={groupFilter}
+          priceRate={priceRate}
+          usdExchangeRate={usdExchangeRate}
+          selectedGroup={groupFilter === FILTER_ALL ? undefined : groupFilter}
         />
       )
     }
@@ -172,14 +178,14 @@ export function Pricing(props: PricingProps) {
       onRechargePriceChange={setShowRechargePrice}
       viewMode={viewMode}
       onViewModeChange={setViewMode}
-      quotaTypeFilter={quotaTypeFilter}
-      endpointTypeFilter={endpointTypeFilter}
       vendorFilter={vendorFilter}
+      capabilityFilter={capabilityFilter}
+      priceFilter={priceFilter}
       groupFilter={groupFilter}
       tagFilter={tagFilter}
-      onQuotaTypeChange={setQuotaTypeFilter}
-      onEndpointTypeChange={setEndpointTypeFilter}
       onVendorChange={setVendorFilter}
+      onCapabilityChange={setCapabilityFilter}
+      onPriceChange={setPriceFilter}
       onGroupChange={setGroupFilter}
       onTagChange={setTagFilter}
       vendors={vendors || []}
@@ -193,26 +199,28 @@ export function Pricing(props: PricingProps) {
     />
   )
 
-  const detailsDrawer = selectedModel ? (
-    <ModelDetailsDrawer
-      open={Boolean(selectedModel)}
-      onOpenChange={(open) => {
-        if (!open) setSelectedModelName(null)
-      }}
-      model={selectedModel}
-      groupRatio={groupRatio || {}}
-      usableGroup={usableGroup || {}}
-      endpointMap={
-        (endpointMap as Record<string, { path?: string; method?: string }>) ||
-        {}
-      }
-      autoGroups={autoGroups || []}
-      priceRate={priceRate ?? 1}
-      usdExchangeRate={usdExchangeRate ?? 1}
-      tokenUnit={tokenUnit}
-      showRechargePrice={showRechargePrice}
-    />
-  ) : null
+  // The catalog expands rows in place; the sheet belongs to the table view.
+  const detailsDrawer =
+    selectedModel && viewMode === VIEW_MODES.TABLE ? (
+      <ModelDetailsDrawer
+        open={Boolean(selectedModel)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedModelName(null)
+        }}
+        model={selectedModel}
+        groupRatio={groupRatio || {}}
+        usableGroup={usableGroup || {}}
+        endpointMap={
+          (endpointMap as Record<string, { path?: string; method?: string }>) ||
+          {}
+        }
+        autoGroups={autoGroups || []}
+        priceRate={priceRate ?? 1}
+        usdExchangeRate={usdExchangeRate ?? 1}
+        tokenUnit={tokenUnit}
+        showRechargePrice={showRechargePrice}
+      />
+    ) : null
 
   if (consoleVariant) {
     return (
@@ -275,33 +283,12 @@ export function Pricing(props: PricingProps) {
             />
           </header>
 
-          <div className='grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)]'>
-            <PricingSidebar
-              quotaTypeFilter={quotaTypeFilter}
-              endpointTypeFilter={endpointTypeFilter}
-              vendorFilter={vendorFilter}
-              groupFilter={groupFilter}
-              tagFilter={tagFilter}
-              onQuotaTypeChange={setQuotaTypeFilter}
-              onEndpointTypeChange={setEndpointTypeFilter}
-              onVendorChange={setVendorFilter}
-              onGroupChange={setGroupFilter}
-              onTagChange={setTagFilter}
-              vendors={vendors || []}
-              groups={availableGroups}
-              groupRatios={groupRatio}
-              tags={availableTags}
-              models={models || []}
-              hasActiveFilters={hasActiveFilters}
-              onClearFilters={clearFilters}
-              className='hover-scrollbar sticky top-20 hidden max-h-[calc(100dvh-6rem)] self-start overflow-y-auto xl:block'
-            />
+          {/* The catalog owns the full width: filters live in one horizontal
+              bar instead of a permanent left column. */}
+          <div className='min-w-0 space-y-4'>
+            {toolbar}
 
-            <main className='min-w-0 space-y-4'>
-              {toolbar}
-
-              {renderPricingContent()}
-            </main>
+            {renderPricingContent()}
           </div>
 
           {detailsDrawer}

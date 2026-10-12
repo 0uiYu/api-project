@@ -80,6 +80,19 @@ function calculateTokenPrice(
   }
 }
 
+/**
+ * Standard USD price for one million input tokens at the given group ratio.
+ * Used for coarse price buckets, so it deliberately ignores the recharge rate
+ * and display currency: the bucket should not move when the site changes how
+ * prices are displayed.
+ */
+export function getInputPricePerMillion(
+  model: PricingModel,
+  groupRatio = 1
+): number {
+  return calculateTokenPrice(model, 'input', groupRatio)
+}
+
 function hasRatio(value: number | null | undefined): boolean {
   return value !== undefined && value !== null && Number.isFinite(Number(value))
 }
