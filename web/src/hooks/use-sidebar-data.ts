@@ -3,7 +3,6 @@ import {
   BarChart3,
   Box,
   CreditCard,
-  Crown,
   FileText,
   Key,
   PlugZap,
@@ -11,12 +10,10 @@ import {
   ServerCog,
   Settings,
   ScrollText,
-  Share2,
   Store,
   Ticket,
   User,
   Users,
-  Wallet,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -29,9 +26,9 @@ import { ROLE } from '@/lib/roles'
  * These are shown when the URL does not match any nested sidebar view
  * registered in `layout/lib/sidebar-view-registry.ts`.
  *
- * The personal entries (wallet/profile/security) live in the Console group and
- * the model square is listed there too, so the console has a single "Console"
- * group plus "Admin".
+ * Keep the user-facing menu focused on the five actions most users need.
+ * Billing, referrals and subscriptions remain available from their existing
+ * routes and account surfaces without competing with the primary navigation.
  *
  * The chat area, the playground and the task/drawing log entries stay out of
  * the root menu; their routes remain reachable by URL. The call analytics and
@@ -66,21 +63,6 @@ export function useSidebarData(): SidebarData {
             title: t('Usage Records'),
             url: '/usage-logs/common',
             icon: FileText,
-          },
-          {
-            title: t('Account Balance'),
-            url: '/wallet',
-            icon: Wallet,
-          },
-          {
-            title: t('Referral Program'),
-            url: '/wallet/affiliate',
-            icon: Share2,
-          },
-          {
-            title: t('Subscription Plans'),
-            url: '/wallet/subscriptions',
-            icon: Crown,
           },
           {
             title: t('Profile'),

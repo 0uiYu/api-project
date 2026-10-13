@@ -1,14 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import {
-  Activity,
-  Coins,
-  KeyRound,
-  Timer,
-  Wallet,
-  Zap,
-  type LucideIcon,
-} from 'lucide-react'
+import { Activity, Coins, KeyRound, Wallet, type LucideIcon } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -18,8 +10,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { getUserQuotaDates } from '@/features/dashboard/api'
 import type { QuotaDataItem } from '@/features/dashboard/types'
 import { getApiKeys } from '@/features/keys/api'
-import { getPerfMetricsSummary } from '@/features/performance-metrics/api'
-import { getUserLogStats } from '@/features/usage-logs/api'
 import { toIntlLocale } from '@/i18n/languages'
 import { getUserGroups } from '@/lib/api'
 import { formatCompactNumber, formatNumber, formatQuota } from '@/lib/format'
@@ -87,28 +77,6 @@ export function StatCards() {
     staleTime: 60 * 1000,
   })
 
-  // /api/data/self rejects spans longer than 2,592,000 seconds.
-  const recentRange = useMemo(
-    () => ({
-      start: todayRange.end - 2_592_000,
-      end: todayRange.end,
-    }),
-    [todayRange.end]
-  )
-
-  const recentQuery = useQuery({
-    queryKey: ['dashboard', 'stat-cards', 'recent', recentRange.start],
-    queryFn: async () =>
-      requireServerSuccess(
-        await getUserQuotaDates({
-          start_timestamp: recentRange.start,
-          end_timestamp: recentRange.end,
-          default_time: 'day',
-        })
-      ),
-    staleTime: 10 * 60 * 1000,
-  })
-
   const keysQuery = useQuery({
     queryKey: ['dashboard', 'stat-cards', 'api-keys'],
     queryFn: async () =>
@@ -122,19 +90,6 @@ export function StatCards() {
     staleTime: 5 * 60 * 1000,
   })
 
-  const rateQuery = useQuery({
-    queryKey: ['dashboard', 'stat-cards', 'rates'],
-    queryFn: async () => requireServerSuccess(await getUserLogStats({})),
-    staleTime: 60 * 1000,
-  })
-
-  const perfQuery = useQuery({
-    queryKey: ['dashboard', 'stat-cards', 'perf', 24],
-    queryFn: async () => requireServerSuccess(await getPerfMetricsSummary(24)),
-    staleTime: 60 * 1000,
-    retry: false,
-  })
-
   const formatCount = useCallback(
     (value: number) => {
       const text = formatNumber(value, locale)
@@ -144,8 +99,6 @@ export function StatCards() {
   )
 
   const today = sumQuotaData(todayQuery.data?.data)
-  const recent = sumQuotaData(recentQuery.data?.data)
-  const recentTokens = Math.max(recent.tokens, today.tokens)
 
   const groupRatio = useMemo(() => {
     const ratio = groupsQuery.data?.data?.[userGroup]?.ratio
@@ -165,17 +118,8 @@ export function StatCards() {
   const totalKeys = keysQuery.data?.data?.total ?? keys.length
   const enabledKeys = keys.filter((item) => item.status === 1).length
 
-  const rpm = Number(rateQuery.data?.data?.rpm ?? 0)
-  const tpm = Number(rateQuery.data?.data?.tpm ?? 0)
-  const avgLatency = Number(perfQuery.data?.data?.summary?.avg_latency_ms ?? 0)
-  const successRate = Number(perfQuery.data?.data?.summary?.success_rate ?? 0)
-
   const todayStandard = toStandardQuota(today.quota)
   const usedStandard = toStandardQuota(usedQuota)
-  const tokensPerRequest =
-    recent.count > 0 ? Math.round(recentTokens / recent.count) : 0
-  const todayTokensPerRequest =
-    today.count > 0 ? Math.round(today.tokens / today.count) : 0
 
   const stats: DashboardStat[] = [
     {
@@ -215,42 +159,6 @@ export function StatCards() {
       icon: Coins,
       tone: 'warning',
       loading: todayQuery.isPending,
-    },
-    {
-      key: 'tokens-today',
-      title: t('Tokens today'),
-      value: formatCount(today.tokens),
-      description: `${formatCount(todayTokensPerRequest)} ${t('Tokens')} / ${t('Requests')}`,
-      icon: Zap,
-      tone: 'chart-1',
-      loading: todayQuery.isPending,
-    },
-    {
-      key: 'tokens-total',
-      title: t('Tokens in 30 days'),
-      value: formatCount(recentTokens),
-      description: `${formatCount(tokensPerRequest)} ${t('Tokens')} / ${t('Requests')}`,
-      icon: Zap,
-      tone: 'chart-2',
-      loading: recentQuery.isPending,
-    },
-    {
-      key: 'rates',
-      title: t('Performance metrics'),
-      value: `${formatCount(rpm)} RPM`,
-      description: `${formatCount(tpm)} TPM`,
-      icon: Timer,
-      tone: 'destructive',
-      loading: rateQuery.isPending,
-    },
-    {
-      key: 'latency',
-      title: t('Average response time'),
-      value: `${formatCount(Math.round(avgLatency))} ms`,
-      description: `${t('Success rate')} ${successRate.toFixed(1)}%`,
-      icon: Timer,
-      tone: 'neutral',
-      loading: perfQuery.isPending,
     },
   ]
 
