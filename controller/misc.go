@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html"
 	"net/http"
 
 	"github.com/0uiYu/api-project/common"
@@ -232,23 +231,15 @@ func SendEmailVerification(c *gin.Context) {
 		})
 		return
 	}
-	code, err := common.GenerateNumericVerificationCode(8)
-	if err != nil {
-		common.ApiErrorI18n(c, i18n.MsgUserRegisterFailed)
-		return
-	}
+	// ===================== 本地开发 mock：开始 =====================
+	// 不实际发送邮件，登记一个固定验证码后直接返回成功。
+	// 注册时在验证码输入框填 000000 即可通过校验。
+	// 恢复真实发信逻辑：git checkout -- controller/misc.go
+	// 切勿带入生产环境：它跳过了"调用方确实拥有该邮箱"的证明。
+	code := "000000"
 	common.RegisterVerificationCodeWithKey(email, code, common.EmailVerificationPurpose)
-	subject := fmt.Sprintf("%s邮箱验证邮件", common.SystemName)
-	content := fmt.Sprintf("<p>您好，你正在进行%s邮箱验证。</p>"+
-		"<p>您的验证码为: <strong>%s</strong></p>"+
-		"<p>验证码 %d 分钟内有效，如果不是本人操作，请忽略。</p>",
-		html.EscapeString(common.SystemName), html.EscapeString(code), common.VerificationValidMinutes)
-	err = common.SendEmail(subject, email, content)
-	if err != nil {
-		common.DeleteKey(email, common.EmailVerificationPurpose)
-		common.ApiError(c, err)
-		return
-	}
+	common.SysLog("[LOCAL MOCK] skipped verification email to " + email + " (fixed code: 000000)")
+	// ===================== 本地开发 mock：结束 =====================
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
