@@ -1,9 +1,30 @@
-import { EXCLUDED_GROUPS, FILTER_ALL, QUOTA_TYPE_VALUES } from '../constants'
+import {
+  CAPABILITIES,
+  CAPABILITY_ENDPOINTS,
+  EXCLUDED_GROUPS,
+  FILTER_ALL,
+  QUOTA_TYPE_VALUES,
+  type CapabilityOption,
+} from '../constants'
 import type { PricingModel } from '../types'
 
 // ----------------------------------------------------------------------------
 // Model Helper Utilities
 // ----------------------------------------------------------------------------
+
+/**
+ * Capability buckets a model satisfies through the endpoint types it supports.
+ * Derived from real backend data, so a model never claims a capability the
+ * server did not report.
+ */
+export function getModelCapabilities(model: PricingModel): CapabilityOption[] {
+  const endpoints = model.supported_endpoint_types ?? []
+  return Object.values(CAPABILITIES).filter((capability) =>
+    endpoints.some((endpoint) =>
+      CAPABILITY_ENDPOINTS[capability].includes(endpoint)
+    )
+  )
+}
 
 /**
  * Get available groups for a model

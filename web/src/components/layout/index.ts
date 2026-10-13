@@ -16,6 +16,11 @@ export { Main } from './components/main'
 export { PageFooterPortal } from './components/page-footer'
 export { NavGroup } from './components/nav-group'
 export { SectionPageLayout } from './components/section-page-layout'
+export { UserPortalHeading, UserPortalPage } from './user-portal'
+export {
+  USER_PORTAL_CARD_CLASS,
+  USER_PORTAL_ROOT_CLASS,
+} from './user-portal-tokens'
 export { SidebarViewHeader } from './components/sidebar-view-header'
 export { SystemBrand } from './components/system-brand'
 export { TopNav } from './components/top-nav'

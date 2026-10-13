@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next'
 
-import { SectionPageLayout } from '@/components/layout'
+import {
+  UserPortalHeading,
+  UserPortalPage,
+} from '@/components/layout'
 
 import { ApiKeysDialogs } from './components/api-keys-dialogs'
 import {
@@ -26,20 +29,22 @@ export function ApiKeys(props: {
         requested={props.openCreate === true}
         onHandled={props.onCreateRequestHandled ?? ignoreCreateRequest}
       />
-      <SectionPageLayout fixedContent>
-        <SectionPageLayout.Title>{t('API Keys')}</SectionPageLayout.Title>
-        <SectionPageLayout.Actions>
-          <ApiKeysPrimaryButtons />
-        </SectionPageLayout.Actions>
-        <SectionPageLayout.Content>
-          <div className='flex h-full min-h-0 flex-col gap-3'>
-            <ApiKeyAddresses />
-            <div className='min-h-0 flex-1'>
-              <ApiKeysTable />
-            </div>
+      <UserPortalPage>
+        <UserPortalHeading
+          title={t('API Keys')}
+          actions={<ApiKeysPrimaryButtons />}
+        />
+
+        <ApiKeyAddresses />
+
+        {/* No filter bar and no section heading: the page title already says
+            what this list is. */}
+        <section className='flex min-w-0 flex-col'>
+          <div className='flex h-[74svh] min-h-[480px] flex-col'>
+            <ApiKeysTable />
           </div>
-        </SectionPageLayout.Content>
-      </SectionPageLayout>
+        </section>
+      </UserPortalPage>
 
       <ApiKeysDialogs />
     </ApiKeysProvider>

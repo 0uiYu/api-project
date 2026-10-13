@@ -12,7 +12,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import {
-  act,
   cleanup,
   render,
   screen,
@@ -35,6 +34,7 @@ import {
 import { apiKeySchema, type ApiKey } from '../../types'
 import { ApiKeyQuotaCell } from '../api-key-quota-cell'
 import { useApiKeysColumns } from '../api-keys-columns'
+import { ApiKeysDialogs } from '../api-keys-dialogs'
 import { ApiKeysProvider } from '../api-keys-provider'
 import { ApiKeysTable } from '../api-keys-table'
 
@@ -208,6 +208,7 @@ function KeysPage() {
   return (
     <ApiKeysProvider>
       <ApiKeysTable />
+      <ApiKeysDialogs />
       <Toaster />
     </ApiKeysProvider>
   )
@@ -259,17 +260,25 @@ async function renderKeysPage(status = 1, overrides: Partial<ApiKey> = {}) {
   return { post, put }
 }
 
-it('combines creation and last use while keeping expiry, models and IP restrictions separate', async () => {
+it('shows only the columns an ordinary user needs', async () => {
   await renderKeysPage()
-  for (const name of ['Name', 'API Key', 'Group', 'Models', 'IP Restriction']) {
+  for (const name of ['Name', 'API Key', 'Created', 'Last Used']) {
     expect(screen.getByRole('columnheader', { name })).toBeInTheDocument()
   }
-  expect(screen.getByRole('columnheader', { name: 'Time' })).toBeInTheDocument()
-  expect(
-    screen.getByRole('columnheader', { name: 'Expires' })
-  ).toBeInTheDocument()
-  const timeCell = screen.getByRole('cell', { name: /Created.*Last Used/ })
-  expect(within(timeCell).getByText('Last Used')).toBeInTheDocument()
+  // Status, group, model/IP restrictions, expiry and the combined time column
+  // are gone: the list shows the two dates instead.
+  for (const name of [
+    'Status',
+    'Group',
+    'Models',
+    'IP Restriction',
+    'Expires',
+    'Time',
+  ]) {
+    expect(
+      screen.queryByRole('columnheader', { name })
+    ).not.toBeInTheDocument()
+  }
   const quotaHeader = screen.getByRole('columnheader', { name: 'Quota ($)' })
   const quota = screen.getByText('80')
   expect(quotaHeader).not.toHaveClass('pr-8')
@@ -277,57 +286,46 @@ it('combines creation and last use while keeping expiry, models and IP restricti
   expect(quota).not.toHaveTextContent('120')
 })
 
-it('restores dates hidden by the old default and preserves unrelated column preferences', async () => {
+it('keeps the hidden columns hidden even with preferences stored by an older build', async () => {
   localStorage.setItem(
     'api-keys:column-visibility',
     JSON.stringify({
-      created_time: false,
-      accessed_time: false,
-      expired_time: false,
       model_limits: false,
     })
   )
   await renderKeysPage()
-  expect(screen.getByRole('columnheader', { name: 'Time' })).toBeInTheDocument()
   expect(
-    screen.getByRole('columnheader', { name: 'Expires' })
+    screen.getByRole('columnheader', { name: 'Created' })
   ).toBeInTheDocument()
+  expect(
+    screen.queryByRole('columnheader', { name: 'Expires' })
+  ).not.toBeInTheDocument()
   expect(
     screen.queryByRole('columnheader', { name: 'Models' })
   ).not.toBeInTheDocument()
 })
 
-it.each([
-  [1, 'Disable', 2, 'Disabled'],
-  [2, 'Enable', 1, 'Enabled'],
-])(
-  'keeps status %s toggling at its original row button without fetching a full key',
-  async (status, action, nextStatus, nextLabel) => {
-    const { post, put } = await renderKeysPage(status)
-    const user = userEvent.setup()
-    const button = screen.getByRole('button', { name: action })
-    expect(button).toHaveTextContent(action)
-    act(() => button.focus())
-    await user.keyboard('{Enter}')
-    await waitFor(() =>
-      expect(put).toHaveBeenCalledWith('/api/token/?status_only=true', {
-        id: 7,
-        status: nextStatus,
-      })
-    )
-    await screen.findByText(nextLabel)
-    expect(post).not.toHaveBeenCalled()
-  }
-)
+it('offers exactly two row actions: edit and delete', async () => {
+  await renderKeysPage()
+  expect(screen.getByRole('button', { name: 'Edit' })).toBeVisible()
+  expect(screen.getByRole('button', { name: 'Delete' })).toBeVisible()
+  expect(
+    screen.queryByRole('button', { name: 'Open menu' })
+  ).not.toBeInTheDocument()
+})
 
-it('keeps expired status when the server refuses reactivation', async () => {
-  const { put, post } = await renderKeysPage(3)
-  put.mockResolvedValue({ data: { success: false, message: 'Token expired' } })
-  await userEvent.click(screen.getByRole('button', { name: 'Enable' }))
-  await screen.findByText('Token expired')
-  expect(screen.getByText('Expired')).toBeInTheDocument()
-  expect(screen.queryByText('Enabled')).not.toBeInTheDocument()
-  expect(post).not.toHaveBeenCalled()
+it('deletes a key only after the confirmation dialog is accepted', async () => {
+  await renderKeysPage()
+  const remove = vi.spyOn(api, 'delete').mockResolvedValue({
+    data: { success: true },
+  })
+  const user = userEvent.setup()
+  await user.click(screen.getByRole('button', { name: 'Delete' }))
+
+  // The click alone destroys nothing: a confirmation has to be accepted.
+  expect(remove).not.toHaveBeenCalled()
+  await user.click(await screen.findByRole('button', { name: 'Delete' }))
+  await waitFor(() => expect(remove).toHaveBeenCalledWith('/api/token/7/'))
 })
 
 it.each([true, false])(
@@ -341,15 +339,12 @@ it.each([true, false])(
         : { data: { success: false, message: 'Verification required' } }
     )
     const copy = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue()
-    await user.click(screen.getByRole('button', { name: 'Open menu' }))
     expect(post).not.toHaveBeenCalled()
+    // Copying lives in the key cell now; there is no row menu any more.
     expect(
-      screen.queryByRole('menuitem', { name: 'Copy Connection Info' })
+      screen.queryByRole('button', { name: 'Open menu' })
     ).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('menuitem', { name: 'Chat' })
-    ).not.toBeInTheDocument()
-    await user.click(screen.getByRole('menuitem', { name: 'Copy Key' }))
+    await user.click(screen.getByRole('button', { name: 'Copy API key' }))
     await waitFor(() => expect(post).toHaveBeenCalledWith('/api/token/7/key'))
     if (success) {
       await waitFor(() =>
@@ -424,18 +419,13 @@ it('keeps mobile quota readable and opens complete model and IP restrictions by 
   expect(within(details).getByText('2001:db8::1')).toBeVisible()
 })
 
-it('clears the name and key filters when reset is clicked', async () => {
+it('renders the key list without any filter or view controls', async () => {
   await renderKeysPage()
-  const user = userEvent.setup()
-  const name = screen.getByPlaceholderText('Filter by name...')
-  const token = screen.getByLabelText('Filter by API key...')
-  await user.type(name, 'prod')
-  await user.type(token, 'sk-live')
-  await user.click(await screen.findByRole('button', { name: 'Reset' }))
-  expect(name).toHaveValue('')
-  expect(token).toHaveValue('')
-  await waitFor(() => {
-    expect(name).toHaveValue('')
-    expect(token).toHaveValue('')
-  })
+  expect(
+    screen.queryByPlaceholderText('Filter by name...')
+  ).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('button', { name: 'Reset' })
+  ).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: 'Status' })).not.toBeInTheDocument()
 })

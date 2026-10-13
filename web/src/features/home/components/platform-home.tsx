@@ -228,6 +228,30 @@ export function PlatformHome() {
             </div>
           </AnimateInView>
         </section>
+        <section className='mx-auto grid w-full max-w-[980px] gap-3 px-5 pb-12 sm:grid-cols-3 sm:px-6'>
+          {[
+            {
+              title: t('Model Square'),
+              description: t('Discover curated AI models, compare pricing and capabilities, and choose the right model for every scenario.'),
+            },
+            {
+              title: t('API Keys'),
+              description: t('Create an API key and start calling models with a familiar API format.'),
+            },
+            {
+              title: t('Usage Records'),
+              description: t('Track requests, tokens, and spending in one clear view.'),
+            },
+          ].map((feature) => (
+            <div
+              key={feature.title}
+              className='rounded-xl border border-[#DCE7F7] bg-white/70 p-5 backdrop-blur-md'
+            >
+              <h2 className='text-sm font-semibold text-[#17243D]'>{feature.title}</h2>
+              <p className='mt-2 text-xs leading-5 text-[#64748B]'>{feature.description}</p>
+            </div>
+          ))}
+        </section>
       </main>
 
       <footer className='relative mt-auto border-t border-[#E7ECF3]'>

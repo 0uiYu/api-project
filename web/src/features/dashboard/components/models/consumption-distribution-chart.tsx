@@ -13,6 +13,7 @@ import {
 import { processChartData } from '@/features/dashboard/lib'
 import type {
   ConsumptionDistributionChartType,
+  ConsumptionMetric,
   QuotaDataItem,
 } from '@/features/dashboard/types'
 import { useThemeRadiusPx } from '@/lib/theme-radius'
@@ -29,6 +30,13 @@ interface ConsumptionDistributionChartProps {
   timeGranularity?: TimeGranularity
   timeRange?: { start: number; end: number }
   defaultChartType?: ConsumptionDistributionChartType
+  /**
+   * Render the bars alone: no header, no border and no bar/area switcher. The
+   * user portal shows one bar chart and never offers the area variant.
+   */
+  bare?: boolean
+  /** What the bars measure. Only the bar variant honours it. */
+  metric?: ConsumptionMetric
 }
 
 const CHART_TYPE_ICONS: Record<
@@ -88,7 +96,8 @@ export function ConsumptionDistributionChart(
         timeGranularity,
         t,
         chartRadius,
-        props.timeRange
+        props.timeRange,
+        props.metric ?? 'quota'
       ),
     [
       props.data,
@@ -97,18 +106,39 @@ export function ConsumptionDistributionChart(
       timeGranularity,
       t,
       chartRadius,
+      props.metric,
     ]
   )
-  const spec = chartType === 'bar' ? chartData.spec_line : chartData.spec_area
+  const activeType = props.bare ? 'bar' : chartType
+  const spec = activeType === 'bar' ? chartData.spec_line : chartData.spec_area
   const specType = typeof spec?.type === 'string' ? spec.type : chartType
   const chartKey = [
-    chartType,
+    activeType,
+    props.metric ?? 'quota',
     specType,
     props.loading ? 'loading' : 'ready',
     props.data.length,
     resolvedTheme,
     customization.preset,
   ].join('-')
+
+  const chartBody = (
+    <div className='h-[300px] w-full p-1.5 sm:h-96 sm:p-2'>
+      {themeReady && spec && (
+        <VChart
+          key={chartKey}
+          spec={{
+            ...spec,
+            theme: resolvedTheme === 'dark' ? 'dark' : 'light',
+            background: 'transparent',
+          }}
+          option={VCHART_OPTION}
+        />
+      )}
+    </div>
+  )
+
+  if (props.bare) return chartBody
 
   return (
     <div className='overflow-hidden rounded-lg border'>
@@ -145,19 +175,7 @@ export function ConsumptionDistributionChart(
         </div>
       </div>
 
-      <div className='h-[300px] p-1.5 sm:h-96 sm:p-2'>
-        {themeReady && spec && (
-          <VChart
-            key={chartKey}
-            spec={{
-              ...spec,
-              theme: resolvedTheme === 'dark' ? 'dark' : 'light',
-              background: 'transparent',
-            }}
-            option={VCHART_OPTION}
-          />
-        )}
-      </div>
+      {chartBody}
     </div>
   )
 }

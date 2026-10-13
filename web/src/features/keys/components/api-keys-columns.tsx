@@ -9,6 +9,7 @@ import { useMediaQuery } from '@/hooks'
 import { toIntlLocale } from '@/i18n/languages'
 import { getUserGroups } from '@/lib/api'
 import { getCurrencyDisplay } from '@/lib/currency'
+import { formatDateStr } from '@/lib/format'
 import { requireServerSuccess } from '@/lib/server-error-message'
 import { useSystemConfigStore } from '@/stores/system-config-store'
 
@@ -206,6 +207,35 @@ export function useApiKeysColumns(now: number): ColumnDef<ApiKey>[] {
           )
         },
         size: 180,
+        meta: { mobileHidden: true },
+      },
+      {
+        accessorKey: 'created_time',
+        header: t('Created'),
+        cell: ({ row }) => (
+          <span className='text-sm whitespace-nowrap'>
+            {formatDateStr(
+              new Date(Number(row.getValue('created_time')) * 1000)
+            )}
+          </span>
+        ),
+        size: 120,
+        meta: { mobileHidden: true },
+      },
+      {
+        accessorKey: 'accessed_time',
+        header: t('Last Used'),
+        cell: ({ row }) => {
+          const accessed = Number(row.getValue('accessed_time')) || 0
+          return (
+            <span className='text-sm whitespace-nowrap'>
+              {accessed > 0
+                ? formatDateStr(new Date(accessed * 1000))
+                : t('Never')}
+            </span>
+          )
+        },
+        size: 120,
         meta: { mobileHidden: true },
       },
       {

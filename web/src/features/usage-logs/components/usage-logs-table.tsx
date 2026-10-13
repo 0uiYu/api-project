@@ -233,7 +233,14 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
       skeletonKeyPrefix='usage-log-skeleton'
       applyHeaderSize
       tableClassName={cn(
-        'rounded-none border-0 bg-white shadow-none [&_[data-slot=table]]:text-[13px] [&_[data-slot=table]_td]:text-[13px] [&_[data-slot=table]_td_*]:text-[13px] [&_[data-slot=table]_th]:text-[13px] [&_[data-slot=table]_th_*]:text-[13px]'
+        // Reads as a consumption record rather than a log console: hairline
+        // rows, small muted header, tabular numbers, no chrome around it.
+        'rounded-none border-0 bg-[var(--portal-surface)] shadow-none',
+        '[&_[data-slot=table]]:text-[13px]',
+        '[&_[data-slot=table]_td]:text-[13px] [&_[data-slot=table]_td_*]:text-[13px]',
+        '[&_[data-slot=table]_td]:py-2.5 [&_[data-slot=table]_td]:align-middle [&_[data-slot=table]_td]:tabular-nums',
+        '[&_[data-slot=table]_th]:text-[12px] [&_[data-slot=table]_th]:font-medium [&_[data-slot=table]_th]:text-[var(--portal-muted)]',
+        '[&_[data-slot=table]_th_*]:text-[12px] [&_[data-slot=table]_th_*]:font-medium'
       )}
       mobile={
         <UsageLogsMobileList

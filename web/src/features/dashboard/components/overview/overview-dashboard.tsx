@@ -1,26 +1,22 @@
 import { useTranslation } from 'react-i18next'
 
-import { SectionPageLayout } from '@/components/layout'
+import { UserPortalHeading, UserPortalPage } from '@/components/layout'
 
+import { ConsumptionTrend } from './consumption-trend'
 import { StatCards } from './stat-cards'
-import { UsageTrends } from './usage-trends'
 
 /**
- * Data dashboard: account, usage and performance numbers first, then the
- * trend charts they describe.
+ * User home: the account numbers, then the consumption trend. No welcome banner
+ * and no shortcut buttons — the navigation already carries those actions.
  */
 export function OverviewDashboard() {
   const { t } = useTranslation()
 
   return (
-    <SectionPageLayout>
-      <SectionPageLayout.Title>{t('Dashboard')}</SectionPageLayout.Title>
-      <SectionPageLayout.Content>
-        <div className='flex flex-col gap-4'>
-          <StatCards />
-          <UsageTrends />
-        </div>
-      </SectionPageLayout.Content>
-    </SectionPageLayout>
+    <UserPortalPage>
+      <UserPortalHeading title={t('Home')} />
+      <StatCards />
+      <ConsumptionTrend />
+    </UserPortalPage>
   )
 }

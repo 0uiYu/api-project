@@ -5,7 +5,7 @@ import {
   createRouter,
   RouterProvider,
 } from '@tanstack/react-router'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { api } from '@/lib/api'
@@ -33,9 +33,16 @@ const PRICING_PAYLOAD: PricingData = {
       completion_ratio: 3,
       enable_groups: ['default'],
       group_ratio: { default: 1 },
+      supported_endpoint_types: ['openai'],
     },
   ],
-  vendors: [],
+  vendors: [
+    { id: 1, name: 'Anthropic' },
+    { id: 2, name: 'OpenAI' },
+    { id: 3, name: 'Google' },
+    { id: 4, name: 'xAI' },
+    { id: 5, name: 'DeepSeek' },
+  ],
   group_ratio: { default: 1 },
   usable_group: { default: { desc: 'Default', ratio: 1 } },
   supported_endpoint: {},
@@ -103,11 +110,21 @@ describe('model square layouts', () => {
     expect(
       screen.queryByText(/This site currently has/)
     ).not.toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'Search models' })).toBeVisible()
-    // The catalog keeps its filters in one horizontal bar.
-    expect(screen.getByRole('button', { name: /Capability/ })).toBeVisible()
-    expect(screen.getByRole('button', { name: /^Price/ })).toBeVisible()
-    expect(screen.getByRole('button', { name: /Vendors/ })).toBeVisible()
+    // The portal model square filters by brand only: no keyword search box.
+    expect(
+      screen.queryByRole('textbox', { name: 'Search models' })
+    ).not.toBeInTheDocument()
+    // Brand chips replace the console filter bar: one button per brand that
+    // really exists in the vendor list, plus a catch-all for everything else.
+    for (const brand of ['Claude', 'ChatGPT', 'Grok', 'Gemini', 'Other']) {
+      expect(screen.getByRole('button', { name: brand })).toBeVisible()
+    }
+    expect(
+      screen.queryByRole('button', { name: /Capability/ })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /^Price/ })
+    ).not.toBeInTheDocument()
   })
 
   it('keeps the hero copy on the public model square', async () => {
@@ -115,5 +132,18 @@ describe('model square layouts', () => {
 
     expect(await screen.findByText(/This site currently has/)).toBeVisible()
     expect(screen.getByText(PUBLIC_HERO_COPY)).toBeVisible()
+  })
+
+  it('filters the catalog down to one brand when a chip is pressed', async () => {
+    await renderModelSquare('console')
+
+    const chip = await screen.findByRole('button', { name: 'Claude' })
+    expect(chip).toHaveAttribute('aria-pressed', 'false')
+    chip.click()
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Claude' })
+      ).toHaveAttribute('aria-pressed', 'true')
+    )
   })
 })

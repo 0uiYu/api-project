@@ -20,6 +20,11 @@ type SystemBrandProps = {
    * - 'inline': compact horizontal pill (used inside the top app bar).
    */
   variant?: 'sidebar' | 'inline'
+  /**
+   * Inline size. The user portal uses 'large' so the brand reads as the page
+   * owner rather than a small utility label in the admin tool bar.
+   */
+  size?: 'default' | 'large'
 }
 
 /**
@@ -40,23 +45,34 @@ export function SystemBrand(props: SystemBrandProps) {
     status?.version || props.defaultVersion || t('Unknown version')
 
   if (variant === 'inline') {
+    const large = props.size === 'large'
     return (
       <Link
         to='/'
         aria-label={t('Go to home')}
         className={cn(
-          'text-foreground inline-flex h-7 min-w-0 items-center gap-1.5 rounded-md px-1.5 text-sm font-medium transition-colors outline-none select-none',
+          'text-foreground inline-flex min-w-0 items-center rounded-md transition-colors outline-none select-none',
+          large
+            ? 'h-9 gap-2 px-2 text-base font-semibold'
+            : 'h-7 gap-1.5 px-1.5 text-sm font-medium',
           'hover:bg-accent focus-visible:ring-ring/40 focus-visible:ring-2'
         )}
       >
-        <div className='flex size-5 shrink-0 items-center justify-center overflow-hidden rounded-md'>
+        <div
+          className={cn(
+            'flex shrink-0 items-center justify-center overflow-hidden',
+            large ? 'size-7 rounded-lg' : 'size-5 rounded-md'
+          )}
+        >
           <img
             src={logo}
             alt={t('Logo')}
-            className='size-full rounded-md object-cover'
+            className={cn('size-full object-cover', large ? 'rounded-lg' : 'rounded-md')}
           />
         </div>
-        <span className='max-w-[12rem] truncate'>{name}</span>
+        <span className={cn('truncate', large ? 'max-w-[16rem]' : 'max-w-[12rem]')}>
+          {name}
+        </span>
       </Link>
     )
   }

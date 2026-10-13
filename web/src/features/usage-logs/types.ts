@@ -261,6 +261,8 @@ export interface LogStatistics {
   quota: number
   rpm: number
   tpm: number
+  /** Tokens summed over the same window; all time when no range is sent. */
+  token?: number
 }
 
 // ============================================================================

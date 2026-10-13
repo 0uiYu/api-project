@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { User, Wallet, LogOut, Settings } from 'lucide-react'
+import { User, UserRound, Wallet, LogOut, Settings } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -91,6 +91,12 @@ export function ProfileDropdown() {
           </div>
 
           <DropdownMenuSeparator />
+
+          {/* The portal's account page lives here instead of in the top nav. */}
+          <DropdownMenuItem onClick={() => navigate({ to: '/profile' })}>
+            <UserRound className='size-4' />
+            {t('My Account')}
+          </DropdownMenuItem>
 
           {isSecurityVisible && (
             <DropdownMenuItem onClick={() => navigate({ to: '/security' })}>

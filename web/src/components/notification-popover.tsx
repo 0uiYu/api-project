@@ -15,13 +15,10 @@ import {
 import {
   Popover,
   PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getAnnouncementColorClass } from '@/lib/colors'
 import { formatDateTimeObject } from '@/lib/time'
 import { cn } from '@/lib/utils'
@@ -38,8 +35,6 @@ interface NotificationPopoverProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   unreadCount: number
-  activeTab: 'notice' | 'announcements'
-  onTabChange: (tab: 'notice' | 'announcements') => void
   notice: string
   announcements: AnnouncementItem[]
   loading: boolean
@@ -174,7 +169,6 @@ function NoticeContent({
       <EmptyState
         icon={<Bell />}
         title={t('Loading...')}
-        description={t('Latest platform updates and notices')}
       />
     )
   }
@@ -209,7 +203,6 @@ function AnnouncementsContent({
       <EmptyState
         icon={<Megaphone />}
         title={t('Loading...')}
-        description={t('Latest platform updates and notices')}
       />
     )
   }
@@ -276,8 +269,6 @@ export function NotificationPopover({
   open,
   onOpenChange,
   unreadCount,
-  activeTab,
-  onTabChange,
   notice,
   announcements,
   loading,
@@ -307,48 +298,34 @@ export function NotificationPopover({
         ) : null}
       </PopoverTrigger>
 
+      {/* One column, no tabs and no header copy: the panel is just the notice
+          and the announcement list, separated by a hairline. */}
       <PopoverContent
         align='end'
         sideOffset={8}
-        className='w-[min(26rem,calc(100vw-1rem))] gap-3 p-3'
+        className='w-[min(24rem,calc(100vw-1rem))] gap-0 p-0'
       >
-        <PopoverHeader className='gap-1 px-1'>
-          <PopoverTitle>{t('System Announcements')}</PopoverTitle>
-          <p className='text-muted-foreground text-xs'>
-            {t('Latest platform updates and notices')}
-          </p>
-        </PopoverHeader>
-
-        <Tabs
-          value={activeTab}
-          onValueChange={onTabChange as (value: string) => void}
-        >
-          <TabsList className='grid w-full grid-cols-2'>
-            <TabsTrigger value='notice' className='gap-1.5'>
-              <Bell className='size-3.5' />
-              {t('Notice')}
-            </TabsTrigger>
-            <TabsTrigger value='announcements' className='gap-1.5'>
-              <Megaphone className='size-3.5' />
-              {t('Timeline')}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value='notice' className='mt-2'>
+        <div className='flex items-center gap-2 border-b px-4 py-3'>
+          <Megaphone className='text-muted-foreground size-4' aria-hidden='true' />
+          <p className='text-sm font-semibold'>{t('System Announcements')}</p>
+        </div>
+        <div className='max-h-[60vh] overflow-y-auto'>
+          <div className={cn('px-4', announcements.length > 0 ? 'py-3' : 'py-4')}>
             <NoticeContent notice={notice} loading={loading} t={t} />
-          </TabsContent>
+          </div>
+          {announcements.length > 0 ? (
+            <div className='border-t px-4 py-3'>
+              <AnnouncementsContent
+                announcements={announcements}
+                loading={loading}
+                t={t}
+              />
+            </div>
+          ) : null}
+        </div>
 
-          <TabsContent value='announcements' className='mt-2'>
-            <AnnouncementsContent
-              announcements={announcements}
-              loading={loading}
-              t={t}
-            />
-          </TabsContent>
-        </Tabs>
-
-        <div className='flex justify-end'>
-          <Button size='sm' onClick={() => onOpenChange(false)}>
+        <div className='flex justify-end border-t px-2 py-1.5'>
+          <Button size='sm' variant='ghost' onClick={() => onOpenChange(false)}>
             {t('Close')}
           </Button>
         </div>

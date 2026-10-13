@@ -1,5 +1,6 @@
 import { ApiKeysDeleteDialog } from './api-keys-delete-dialog'
 import { ApiKeysMutateDrawer } from './api-keys-mutate-drawer'
+import { ApiKeysRenameDialog } from './api-keys-rename-dialog'
 import { useApiKeys } from './api-keys-provider'
 import { CCSwitchDialog } from './dialogs/cc-switch-dialog'
 
@@ -13,6 +14,7 @@ export function ApiKeysDialogs() {
         onOpenChange={(isOpen) => !isOpen && setOpen(null)}
         currentRow={open === 'update' ? currentRow || undefined : undefined}
       />
+      <ApiKeysRenameDialog />
       <ApiKeysDeleteDialog />
       <CCSwitchDialog
         open={open === 'cc-switch'}

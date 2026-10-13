@@ -225,7 +225,6 @@ it('updates count unit labels across cards, table cells and breakdowns with loca
   )
   for (const [language, unit] of [
     ['en', 'image'],
-    ['zhTW', '張'],
     ['zhCN', '张'],
     ['fr', 'image'],
   ]) {

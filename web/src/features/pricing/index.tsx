@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { PublicLayout, SectionPageLayout } from '@/components/layout'
+import { PublicLayout, UserPortalHeading, UserPortalPage } from '@/components/layout'
 import { PageTransition } from '@/components/page-transition'
 
 import {
@@ -13,6 +13,7 @@ import {
   ModelDetailsDrawer,
 } from './components'
 import { ModelCatalog } from './components/model-catalog'
+import { PortalModelFilters } from './components/portal-model-filters'
 import { EXCLUDED_GROUPS, FILTER_ALL, VIEW_MODES } from './constants'
 import { useFilters } from './hooks/use-filters'
 import { usePricingData } from './hooks/use-pricing-data'
@@ -132,6 +133,7 @@ export function Pricing(props: PricingProps) {
           priceRate={priceRate}
           usdExchangeRate={usdExchangeRate}
           selectedGroup={groupFilter === FILTER_ALL ? undefined : groupFilter}
+          usableGroup={usableGroup || {}}
         />
       )
     }
@@ -163,11 +165,12 @@ export function Pricing(props: PricingProps) {
     value: searchInput,
     onChange: setSearchInput,
     onClear: clearSearch,
-    placeholder: t('Search model name, provider, endpoint, or tag...'),
+    placeholder: t('Search model name, provider, or tag'),
   }
 
   const toolbar = (
     <PricingToolbar
+      simple={consoleVariant}
       filteredCount={filteredModels.length}
       totalCount={models?.length}
       sortBy={sortBy}
@@ -224,23 +227,20 @@ export function Pricing(props: PricingProps) {
 
   if (consoleVariant) {
     return (
-      <SectionPageLayout>
-        <SectionPageLayout.Title>{t('Model Square')}</SectionPageLayout.Title>
-        <SectionPageLayout.Content>
-          <div className='flex flex-col gap-3'>
-            <SearchBar {...searchBarProps} />
-            {isLoading ? (
-              <LoadingSkeleton viewMode={viewMode} />
-            ) : (
-              <>
-                {toolbar}
-                {renderPricingContent()}
-              </>
-            )}
-            {detailsDrawer}
-          </div>
-        </SectionPageLayout.Content>
-      </SectionPageLayout>
+      <UserPortalPage>
+        <UserPortalHeading title={t('Model Square')} />
+        <PortalModelFilters
+          vendors={vendors || []}
+          vendorFilter={vendorFilter}
+          onVendorChange={setVendorFilter}
+        />
+        {isLoading ? (
+          <LoadingSkeleton viewMode={viewMode} />
+        ) : (
+          renderPricingContent()
+        )}
+        {detailsDrawer}
+      </UserPortalPage>
     )
   }
 

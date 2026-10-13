@@ -1,4 +1,4 @@
-import { Languages, Check } from 'lucide-react'
+import { Globe, Check } from 'lucide-react'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -50,7 +50,7 @@ export function LanguageSwitcher(props: LanguageSwitcherProps) {
           />
         }
       >
-        <Languages className='size-[1.2rem]' />
+        <Globe className='size-[1.2rem]' />
         <span className='sr-only'>{t('Change language')}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>

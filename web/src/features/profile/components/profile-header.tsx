@@ -1,8 +1,9 @@
+import { ImageUp, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 
-import { StatusBadge } from '@/components/status-badge'
+import { USER_PORTAL_CARD_CLASS } from '@/components/layout'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,7 +18,6 @@ import {
   getUserAvatarStyle,
 } from '@/lib/avatar'
 import { handleServerError } from '@/lib/handle-server-error'
-import { getRoleLabel } from '@/lib/roles'
 import { useAuthStore } from '@/stores/auth-store'
 
 import { getDisplayName } from '../lib'
@@ -80,8 +80,6 @@ export function ProfileHeader(props: ProfileHeaderProps) {
   const storedAvatar = getStoredUserAvatar(profile.setting)
   const avatar =
     avatarOverride === null ? storedAvatar : avatarOverride || undefined
-  const roleLabel = getRoleLabel(profile.role)
-
   const saveAvatar = async (nextAvatar: string) => {
     setUploading(true)
     try {
@@ -148,10 +146,10 @@ export function ProfileHeader(props: ProfileHeaderProps) {
   return (
     <header
       data-slot='profile-identity'
-      className='flex flex-col gap-4 border-b border-[#E7EEF6] bg-[#F4F8FC] px-4 py-5 sm:flex-row sm:items-center sm:px-6'
+      className={`${USER_PORTAL_CARD_CLASS} flex flex-col gap-4 sm:flex-row sm:items-center`}
     >
       <div className='flex min-w-0 flex-1 items-center gap-4'>
-        <div className='rounded-2xl border border-[#D7E4F7] bg-white p-1'>
+        <div className='rounded-2xl border border-[var(--portal-border)] p-1'>
           <Avatar className='size-12 rounded-xl text-sm sm:size-14'>
             {avatar && (
               <AvatarImage
@@ -170,29 +168,18 @@ export function ProfileHeader(props: ProfileHeaderProps) {
         </div>
 
         <div className='min-w-0'>
-          <div className='flex min-w-0 flex-wrap items-center gap-2'>
-            <p className='truncate text-xl font-semibold tracking-tight text-[#17243D]'>
-              {displayName}
-            </p>
-            <StatusBadge label={roleLabel} variant='neutral' copyable={false} />
-            <StatusBadge
-              label={`${t('User ID')} ${profile.id}`}
-              variant='info'
-              copyText={String(profile.id)}
-            />
-          </div>
-          <p className='mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-[#64748B]'>
+          {/* Identity only: name, handle, mail. Role, group and id were noise
+              for an ordinary user, and a support lookup can read them from the
+              account API instead. */}
+          <p className='truncate text-xl font-semibold tracking-tight'>
+            {displayName}
+          </p>
+          <p className='mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-[var(--portal-muted)]'>
             <span className='truncate'>@{profile.username}</span>
             {profile.email ? (
               <>
                 <span aria-hidden='true'>·</span>
                 <span className='truncate'>{profile.email}</span>
-              </>
-            ) : null}
-            {profile.group ? (
-              <>
-                <span aria-hidden='true'>·</span>
-                <span className='truncate'>{profile.group}</span>
               </>
             ) : null}
           </p>
@@ -205,22 +192,26 @@ export function ProfileHeader(props: ProfileHeaderProps) {
       >
         <Button
           type='button'
-          variant='outline'
-          size='sm'
+          variant='ghost'
+          size='icon'
+          aria-label={t('Upload avatar')}
+          title={t('Upload avatar')}
           disabled={uploading}
           onClick={() => fileInputRef.current?.click()}
         >
-          {t('Upload avatar')}
+          <ImageUp className='size-4' aria-hidden='true' />
         </Button>
         {avatar ? (
           <Button
             type='button'
             variant='ghost'
-            size='sm'
+            size='icon'
+            aria-label={t('Remove avatar')}
+            title={t('Remove avatar')}
             disabled={uploading}
             onClick={() => void saveAvatar('')}
           >
-            {t('Remove avatar')}
+            <Trash2 className='size-4' aria-hidden='true' />
           </Button>
         ) : null}
         <input

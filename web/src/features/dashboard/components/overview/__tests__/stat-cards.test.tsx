@@ -15,17 +15,18 @@ import { useAuthStore } from '@/stores/auth-store'
 import { StatCards } from '../stat-cards'
 
 const CARD_TITLES = [
-  'Balance',
+  'Account balance',
+  'Total spent',
   'API Keys',
-  'Requests today',
-  'Spend today',
-  'Tokens today',
-  'Tokens in 30 days',
-  'Performance metrics',
-  'Average response time',
+  'Total tokens',
 ]
 
 let client: QueryClient
+
+function hoursAgoBucket(hours: number) {
+  const now = Math.floor(Date.now() / 1000)
+  return now - hours * 3600 - (now % 3600)
+}
 
 beforeEach(() => {
   useAuthStore.getState().auth.setUser({
@@ -40,12 +41,30 @@ beforeEach(() => {
   client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0 } },
   })
+})
+
+afterEach(() => {
+  cleanup()
+  client.clear()
+  useAuthStore.setState(useAuthStore.getInitialState(), true)
+  vi.restoreAllMocks()
+})
+
+function mockUsageEndpoints() {
   vi.spyOn(api, 'get').mockImplementation(async (url) => {
     if (url === '/api/data/self') {
       return {
         data: {
           success: true,
-          data: [{ created_at: 1, count: 3, quota: 20000, token_used: 1500 }],
+          data: [
+            {
+              created_at: hoursAgoBucket(0),
+              count: 341,
+              quota: 20000,
+              token_used: 1500,
+              model_name: 'model-a',
+            },
+          ],
         },
       }
     }
@@ -63,37 +82,17 @@ beforeEach(() => {
         },
       }
     }
-    if (url === '/api/user/self/groups') {
-      return {
-        data: {
-          success: true,
-          data: { default: { desc: 'Default', ratio: 2 } },
-        },
-      }
-    }
     if (url.startsWith('/api/log/self/stat')) {
-      return { data: { success: true, data: { quota: 0, rpm: 12, tpm: 345 } } }
-    }
-    if (url === '/api/perf-metrics/summary') {
       return {
         data: {
           success: true,
-          data: {
-            summary: { avg_latency_ms: 320, success_rate: 99.5, avg_tps: 10 },
-            models: [],
-          },
+          data: { quota: 20000, rpm: 3, tpm: 120, token: 1234567 },
         },
       }
     }
     throw new Error(`Unexpected GET ${url}`)
   })
-})
-
-afterEach(() => {
-  cleanup()
-  client.clear()
-  useAuthStore.setState(useAuthStore.getInitialState(), true)
-})
+}
 
 async function renderStatCards() {
   const root = createRootRoute()
@@ -122,62 +121,77 @@ async function renderStatCards() {
       <RouterProvider router={router} />
     </QueryClientProvider>
   )
-
-  // Wait for the slowest card before asserting the rest.
-  await screen.findByText('12 RPM')
 }
 
 describe('dashboard stat cards', () => {
-  it('renders the eight account, usage and performance cards', async () => {
+  it('renders the four account cards in the documented order', async () => {
+    mockUsageEndpoints()
     await renderStatCards()
 
-    for (const title of CARD_TITLES) {
-      expect(screen.getByText(title)).toBeVisible()
-    }
+    await screen.findByText('2')
 
-    const quotaCalls = vi
-      .mocked(api.get)
-      .mock.calls.filter((call) => call[0] === '/api/data/self')
-    expect(quotaCalls.length).toBeGreaterThan(0)
-    for (const call of quotaCalls) {
-      const params = (
-        call[1] as {
-          params: { start_timestamp: number; end_timestamp: number }
+    const titles = [
+      ...document.querySelectorAll('[data-card-hover="false"]'),
+    ].map((card) => card.querySelector('div')?.textContent)
+
+    expect(titles).toEqual(CARD_TITLES)
+  })
+
+  it('shows the key count and the cumulative tokens', async () => {
+    mockUsageEndpoints()
+    await renderStatCards()
+
+    expect(await screen.findByText('2')).toBeVisible()
+    expect(await screen.findByText('1.23M')).toBeVisible()
+    // Descriptions were trimmed from the spend and key cards on request.
+    expect(screen.queryByText('1 enabled')).not.toBeInTheDocument()
+    expect(screen.queryByText('Cumulative')).not.toBeInTheDocument()
+    // The today-requests card is gone; neither its title nor its total returns.
+    expect(screen.queryByText('Today requests')).not.toBeInTheDocument()
+    expect(screen.queryByText('Total: 8')).not.toBeInTheDocument()
+    // The last-used card was replaced by cumulative tokens.
+    expect(screen.queryByText('Last request')).not.toBeInTheDocument()
+    expect(screen.queryByText('Recent activity')).not.toBeInTheDocument()
+  })
+
+  it('puts the recharge entry on the balance card', async () => {
+    mockUsageEndpoints()
+    await renderStatCards()
+
+    const recharge = await screen.findByRole('button', {
+      name: 'Go to recharge',
+    })
+
+    expect(recharge).toHaveAttribute('href', '/wallet')
+    expect(
+      recharge.closest('[data-card-hover="false"]')?.textContent
+    ).toContain('Account balance')
+  })
+
+  it('shows the cumulative spend the account has already used', async () => {
+    mockUsageEndpoints()
+    await renderStatCards()
+
+    const spent = await screen.findByText('Total spent')
+    expect(spent.closest('[data-card-hover="false"]')).toBeVisible()
+    expect(screen.queryByText('Available for use')).not.toBeInTheDocument()
+  })
+
+  it('reports a failure instead of showing zero usage', async () => {
+    vi.spyOn(api, 'get').mockImplementation(async (url) => {
+      if (url === '/api/data/self') {
+        throw new Error('boom')
+      }
+      if (url === '/api/token/?p=1&size=100') {
+        return {
+          data: { success: true, data: { items: [], total: 0 } },
         }
-      ).params
-      expect(params.start_timestamp).toBeGreaterThan(0)
-      expect(params.end_timestamp - params.start_timestamp).toBeLessThanOrEqual(
-        2_592_000
-      )
-    }
-  })
-
-  it('shows live rates, key counts and cumulative request totals', async () => {
+      }
+      throw new Error(`Unexpected GET ${url}`)
+    })
     await renderStatCards()
 
-    expect(screen.getByText('12 RPM')).toBeVisible()
-    expect(screen.getByText('345 TPM')).toBeVisible()
-    expect(screen.getByText('320 ms')).toBeVisible()
-    expect(screen.getByText('1 enabled')).toBeVisible()
-    expect(screen.getByText('Total: 8')).toBeVisible()
-  })
-
-  it('links the balance recharge button to the account balance page', async () => {
-    await renderStatCards()
-
-    expect(screen.getByRole('button', { name: 'Recharge' })).toHaveAttribute(
-      'href',
-      '/wallet'
-    )
-  })
-
-  it('links the API key card to the create form', async () => {
-    await renderStatCards()
-
-    const href = screen
-      .getByRole('button', { name: 'Create API Key' })
-      .getAttribute('href')
-    expect(href).toContain('/keys')
-    expect(href).toContain('create=1')
+    expect(await screen.findByText('Failed to load usage data')).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible()
   })
 })

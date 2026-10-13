@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { getRouteApi } from '@tanstack/react-router'
 import { flexRender, type Table as TanstackTable } from '@tanstack/react-table'
-import { Database } from 'lucide-react'
+import { KeyRound } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -15,12 +15,11 @@ import {
 import { StatusBadge } from '@/components/status-badge'
 import {
   Empty,
-  EmptyDescription,
+  EmptyContent,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
-import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useTableUrlState } from '@/hooks/use-table-url-state'
 import { createServerError } from '@/lib/server-error-message'
@@ -29,11 +28,11 @@ import { cn } from '@/lib/utils'
 import { getApiKeys, searchApiKeys } from '../api'
 import {
   API_KEY_STATUS,
-  API_KEY_STATUS_OPTIONS,
   API_KEY_STATUSES,
   ERROR_MESSAGES,
 } from '../constants'
 import type { ApiKey } from '../types'
+import { ApiKeysPrimaryButtons } from './api-keys-primary-buttons'
 import { ApiKeyQuotaCell } from './api-key-quota-cell'
 import { ApiKeyActivityCell } from './api-key-timestamp-cell'
 import {
@@ -100,14 +99,12 @@ function ApiKeysMobileList({
         <Empty className='border-none p-0'>
           <EmptyHeader>
             <EmptyMedia variant='icon'>
-              <Database className='size-6' />
+              <KeyRound className='size-6' />
             </EmptyMedia>
-            <EmptyTitle>{t('No API Keys Found')}</EmptyTitle>
-            <EmptyDescription>
-              {t(
-                'No API keys available. Create your first API key to get started.'
-              )}
-            </EmptyDescription>
+            <EmptyTitle>{t('No keys yet')}</EmptyTitle>
+            <EmptyContent>
+              <ApiKeysPrimaryButtons />
+            </EmptyContent>
           </EmptyHeader>
         </Empty>
       </div>
@@ -232,9 +229,6 @@ export function ApiKeysTable() {
 
   const {
     value: tokenFilter,
-    inputValue: tokenFilterInput,
-    setInputValue: setTokenFilterInput,
-    resetInput: resetTokenFilterInput,
   } = useDebouncedColumnFilter({
     columnFilters,
     columnId: '_tokenSearch',
@@ -290,7 +284,22 @@ export function ApiKeysTable() {
   const { table } = useDataTable({
     data: apiKeys,
     columns,
-    enableRowSelection: true,
+    // Bulk selection is an admin habit; an ordinary user manages a handful of
+    // keys, so the checkbox column and its toolbar are noise.
+    enableRowSelection: false,
+    // Only the columns a caller needs: name, key, status, remaining quota and
+    // last use. Group, model/IP restrictions and expiry moved to the row menu.
+    initialColumnVisibility: {
+      select: false,
+      // Status and the combined time column are gone: the list shows the two
+      // dates the user cares about instead.
+      status: false,
+      activity_time: false,
+      group: false,
+      model_limits: false,
+      allow_ips: false,
+      expired_time: false,
+    },
     columnFilters,
     columnVisibilityStorageKey: API_KEYS_COLUMN_VISIBILITY_STORAGE_KEY,
     globalFilter,
@@ -304,62 +313,21 @@ export function ApiKeysTable() {
     ensurePageInRange,
   })
 
-  const columnVisibility = table.getState().columnVisibility
-  useEffect(() => {
-    // Restore the dates hidden by the previous default when adopting the combined time column.
-    if (
-      columnVisibility.activity_time === undefined &&
-      columnVisibility.created_time === false &&
-      columnVisibility.accessed_time === false &&
-      columnVisibility.expired_time === false
-    ) {
-      table.setColumnVisibility((previous) => ({
-        ...previous,
-        activity_time: true,
-        expired_time: true,
-      }))
-    }
-  }, [columnVisibility, table])
-
   return (
     <DataTablePage
       table={table}
       columns={columns}
       isLoading={isLoading}
       isFetching={isFetching}
-      emptyTitle={t('No API Keys Found')}
-      emptyDescription={t(
-        'No API keys available. Create your first API key to get started.'
-      )}
+      emptyTitle={t('No keys yet')}
+      emptyDescription=''
+      emptyIcon={<KeyRound className='size-6' />}
+      emptyAction={<ApiKeysPrimaryButtons />}
       skeletonKeyPrefix='api-keys-skeleton'
       applyHeaderSize
-      toolbarProps={{
-        searchPlaceholder: t('Filter by name...'),
-        searchDebounceMs: 500,
-        additionalSearch: (
-          <Input
-            placeholder={t('Filter by API key...')}
-            aria-label={t('Filter by API key...')}
-            value={tokenFilterInput}
-            onChange={(e) => setTokenFilterInput(e.target.value)}
-            className='w-full sm:w-50 lg:w-60'
-          />
-        ),
-        filters: [
-          {
-            columnId: 'status',
-            title: t('Status'),
-            options: API_KEY_STATUS_OPTIONS,
-            singleSelect: true,
-          },
-        ],
-        onReset: () => {
-          resetTokenFilterInput()
-          onColumnFiltersChange((previous) =>
-            previous.filter((filter) => filter.id !== '_tokenSearch')
-          )
-        },
-      }}
+      // The key list carries no filter bar: a handful of keys needs no search,
+      // status filter or column/view controls.
+      toolbar={null}
       mobile={
         <ApiKeysMobileList table={table} isLoading={isLoading} now={now} />
       }

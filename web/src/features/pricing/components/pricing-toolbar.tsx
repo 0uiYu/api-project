@@ -39,6 +39,7 @@ import {
 import type { PricingModel, PricingVendor, TokenUnit } from '../types'
 
 export interface PricingToolbarProps {
+  simple?: boolean
   // Filters
   vendorFilter: string
   capabilityFilter: string
@@ -95,9 +96,23 @@ function formatGroupRatio(ratio: number | undefined): string | undefined {
 function FilterMenu(props: {
   label: string
   active?: boolean
+  /** Render with the user-portal surface tokens instead of the public skin. */
+  portal?: boolean
   children: ReactNode
   contentClassName?: string
 }) {
+  let triggerClassName =
+    'border-[#DCE7F7] bg-card/70 text-[#17243D] hover:border-[#BFD7F5] hover:bg-[#F6FAFF] dark:border-white/10 dark:bg-white/5 dark:text-foreground dark:hover:bg-white/10'
+  if (props.portal) {
+    triggerClassName =
+      'border-[var(--portal-border)] bg-[var(--portal-surface)] text-[var(--portal-text)] hover:border-[var(--portal-brand)]'
+  }
+  if (props.active) {
+    triggerClassName = props.portal
+      ? 'border-[var(--portal-brand)] bg-[var(--portal-brand-soft)] text-[var(--portal-text)]'
+      : 'border-[#BFD7F5] bg-[#EEF4FF] text-[#1E3A8A] dark:border-white/20 dark:bg-white/10 dark:text-[#BFDBFE]'
+  }
+
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
@@ -108,9 +123,7 @@ function FilterMenu(props: {
             size='sm'
             className={cn(
               'h-8 shrink-0 gap-1.5 rounded-full px-3 text-xs font-medium',
-              props.active
-                ? 'border-[#BFD7F5] bg-[#EEF4FF] text-[#1E3A8A] dark:border-white/20 dark:bg-white/10 dark:text-[#BFDBFE]'
-                : 'border-[#DCE7F7] bg-card/70 text-[#17243D] hover:border-[#BFD7F5] hover:bg-[#F6FAFF] dark:border-white/10 dark:bg-white/5 dark:text-foreground dark:hover:bg-white/10'
+              triggerClassName
             )}
           />
         }
@@ -251,11 +264,19 @@ export function PricingToolbar(props: PricingToolbarProps) {
   }
 
   return (
-    <div className='border-border/70 bg-card/60 rounded-2xl border backdrop-blur-md'>
+    <div
+      className={cn(
+        'rounded-2xl border',
+        props.simple
+          ? 'border-[var(--portal-border)] bg-[var(--portal-surface)]'
+          : 'border-border/70 bg-card/60 backdrop-blur-md'
+      )}
+    >
       <div className='flex flex-wrap items-center gap-2 p-2.5'>
         <FilterMenu
           label={t('Capability')}
           active={selectedCapabilities.length > 0}
+          portal={props.simple}
         >
           <DropdownMenuGroup>
             <DropdownMenuLabel>{t('Capability')}</DropdownMenuLabel>
@@ -283,7 +304,11 @@ export function PricingToolbar(props: PricingToolbarProps) {
           </DropdownMenuGroup>
         </FilterMenu>
 
-        <FilterMenu label={t('Price')} active={priceActive}>
+        <FilterMenu
+          label={t('Price')}
+          active={priceActive}
+          portal={props.simple}
+        >
           <DropdownMenuGroup>
             <DropdownMenuLabel>{t('Price')}</DropdownMenuLabel>
             {Object.values(PRICE_RANGES).map((range) => {
@@ -308,7 +333,11 @@ export function PricingToolbar(props: PricingToolbarProps) {
           </DropdownMenuGroup>
         </FilterMenu>
 
-        <FilterMenu label={t('Vendors')} active={selectedVendors.length > 0}>
+        <FilterMenu
+          label={t('Vendors')}
+          active={selectedVendors.length > 0}
+          portal={props.simple}
+        >
           <DropdownMenuGroup>
             <DropdownMenuLabel>{t('Vendors')}</DropdownMenuLabel>
             {props.vendors.map((vendor) => {
@@ -343,6 +372,7 @@ export function PricingToolbar(props: PricingToolbarProps) {
         <FilterMenu
           label={t('More filters')}
           active={groupActive || selectedTags.length > 0}
+          portal={props.simple}
         >
           <DropdownMenuGroup>
             <DropdownMenuLabel>{t('Groups')}</DropdownMenuLabel>
@@ -426,35 +456,39 @@ export function PricingToolbar(props: PricingToolbarProps) {
             {t('models')}
           </span>
 
-          <ToggleGroup
-            value={[props.showRechargePrice ? 'recharge' : 'standard']}
-            onValueChange={(values) => {
-              if (values.length > 0) {
-                props.onRechargePriceChange(values[0] === 'recharge')
-              }
-            }}
-            variant='outline'
-            size='sm'
-            aria-label={t('Price display mode')}
-          >
-            <ToggleGroupItem value='standard'>{t('Standard')}</ToggleGroupItem>
-            <ToggleGroupItem value='recharge'>{t('Recharge')}</ToggleGroupItem>
-          </ToggleGroup>
+          {!props.simple && (
+            <>
+              <ToggleGroup
+                value={[props.showRechargePrice ? 'recharge' : 'standard']}
+                onValueChange={(values) => {
+                  if (values.length > 0) {
+                    props.onRechargePriceChange(values[0] === 'recharge')
+                  }
+                }}
+                variant='outline'
+                size='sm'
+                aria-label={t('Price display mode')}
+              >
+                <ToggleGroupItem value='standard'>{t('Standard')}</ToggleGroupItem>
+                <ToggleGroupItem value='recharge'>{t('Recharge')}</ToggleGroupItem>
+              </ToggleGroup>
 
-          <ToggleGroup
-            value={[props.tokenUnit]}
-            onValueChange={(values) => {
-              if (values[0] === 'M' || values[0] === 'K') {
-                props.onTokenUnitChange(values[0])
-              }
-            }}
-            variant='outline'
-            size='sm'
-            aria-label={t('Token unit')}
-          >
-            <ToggleGroupItem value='M'>/1M</ToggleGroupItem>
-            <ToggleGroupItem value='K'>/1K</ToggleGroupItem>
-          </ToggleGroup>
+              <ToggleGroup
+                value={[props.tokenUnit]}
+                onValueChange={(values) => {
+                  if (values[0] === 'M' || values[0] === 'K') {
+                    props.onTokenUnitChange(values[0])
+                  }
+                }}
+                variant='outline'
+                size='sm'
+                aria-label={t('Token unit')}
+              >
+                <ToggleGroupItem value='M'>/1M</ToggleGroupItem>
+                <ToggleGroupItem value='K'>/1K</ToggleGroupItem>
+              </ToggleGroup>
+            </>
+          )}
 
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger
@@ -492,10 +526,12 @@ export function PricingToolbar(props: PricingToolbarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DataTableViewModeToggle
-            value={props.viewMode}
-            onChange={props.onViewModeChange}
-          />
+          {!props.simple && (
+            <DataTableViewModeToggle
+              value={props.viewMode}
+              onChange={props.onViewModeChange}
+            />
+          )}
         </div>
       </div>
 

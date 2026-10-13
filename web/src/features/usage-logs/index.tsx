@@ -2,7 +2,7 @@ import { getRouteApi, useNavigate } from '@tanstack/react-router'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { SectionPageLayout } from '@/components/layout'
+import { UserPortalHeading, UserPortalPage } from '@/components/layout'
 import type { NavGroup } from '@/components/layout/types'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CacheStatsDialog } from '@/features/system-settings/general/channel-affinity/cache-stats-dialog'
@@ -27,7 +27,7 @@ const TASK_LOG_SECTIONS = ['drawing', 'task'] as const
 
 const SECTION_META: Record<UsageLogsSectionId, { titleKey: string }> = {
   common: {
-    titleKey: 'Usage Records',
+    titleKey: 'My Usage',
   },
   drawing: {
     titleKey: 'Drawing Logs',
@@ -37,6 +37,10 @@ const SECTION_META: Record<UsageLogsSectionId, { titleKey: string }> = {
   },
 }
 
+/**
+ * Usage page: the request detail and nothing else. The cost trend lives on the
+ * home page, so this page has no summary cards and no trend/detail switcher.
+ */
 function UsageLogsContent() {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -106,42 +110,38 @@ function UsageLogsContent() {
 
   return (
     <>
-      <SectionPageLayout fixedContent>
-        <SectionPageLayout.Title>
-          {t(pageMeta.titleKey)}
-        </SectionPageLayout.Title>
-        <SectionPageLayout.Actions>
-          {canManageScope && (
-            <Tabs value={viewScope} onValueChange={handleViewScopeChange}>
-              <TabsList>
-                <TabsTrigger value='all'>{t('All')}</TabsTrigger>
-                <TabsTrigger value='self'>{t('Only Mine')}</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
-        </SectionPageLayout.Actions>
-        <SectionPageLayout.Content>
-          <div
-            data-slot='usage-record-surface'
-            className='flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-t-2 border-[#E2E8F0] border-t-[#2563EB] bg-white text-[#17243D] shadow-[0_18px_36px_-30px_rgba(30,58,138,0.45)] [--accent-foreground:#17243D] [--accent:#F4F8FC] [--background:#ffffff] [--border:#E2E8F0] [--card-foreground:#17243D] [--card:#ffffff] [--foreground:#17243D] [--input:#E2E8F0] [--muted-foreground:#64748B] [--muted:#F4F8FC] [--popover-foreground:#17243D] [--popover:#ffffff] [--primary-foreground:#ffffff] [--primary:#2563EB] [--ring:#2563EB] [--table-header-hover:#EAF1FA] [--table-header:#F4F8FC] [--table-row:#ffffff]'
-          >
-            {showTaskSwitcher && (
-              <Tabs value={activeCategory} onValueChange={handleSectionChange}>
-                <TabsList className='h-auto max-w-full flex-wrap justify-start rounded-none border-b border-[#E7EEF6] bg-[#F4F8FC] px-3 py-2'>
-                  {visibleSections.map((section) => (
-                    <TabsTrigger key={section} value={section}>
-                      {t(SECTION_META[section].titleKey)}
-                    </TabsTrigger>
-                  ))}
+      <UserPortalPage>
+        <UserPortalHeading
+          title={t(pageMeta.titleKey)}
+          actions={
+            canManageScope ? (
+              <Tabs value={viewScope} onValueChange={handleViewScopeChange}>
+                <TabsList>
+                  <TabsTrigger value='all'>{t('All')}</TabsTrigger>
+                  <TabsTrigger value='self'>{t('Only Mine')}</TabsTrigger>
                 </TabsList>
               </Tabs>
-            )}
-            <div className='flex min-h-0 flex-1 flex-col'>
-              <UsageLogsTable logCategory={activeCategory} />
-            </div>
+            ) : undefined
+          }
+        />
+
+        <section className='flex min-w-0 flex-col gap-3'>
+          {showTaskSwitcher ? (
+            <Tabs value={activeCategory} onValueChange={handleSectionChange}>
+              <TabsList className='max-w-full flex-wrap justify-start'>
+                {visibleSections.map((section) => (
+                  <TabsTrigger key={section} value={section}>
+                    {t(SECTION_META[section].titleKey)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          ) : null}
+          <div className='flex h-[74svh] min-h-[480px] flex-col'>
+            <UsageLogsTable logCategory={activeCategory} />
           </div>
-        </SectionPageLayout.Content>
-      </SectionPageLayout>
+        </section>
+      </UserPortalPage>
 
       <UserInfoDialog
         userId={selectedUserId}

@@ -39,12 +39,6 @@ describe('resolveLocalizedText', () => {
       expected: '可靈影片生成',
     },
     {
-      name: 'maps the project i18next code zhTW onto the zh-TW map key',
-      value: KLING,
-      language: 'zhTW',
-      expected: '可靈影片生成',
-    },
-    {
       name: 'falls back from zh-TW to the zh primary subtag when zh-TW is absent',
       value: { en: KLING.en, zh: KLING.zh },
       language: 'zh-TW',

@@ -159,6 +159,12 @@ export interface DashboardFilters {
 
 export type ConsumptionDistributionChartType = 'bar' | 'area'
 
+/**
+ * What the consumption chart plots. `quota` is the billed amount converted to
+ * the display currency; the other two are raw usage counts.
+ */
+export type ConsumptionMetric = 'quota' | 'count' | 'tokens'
+
 export type ModelAnalyticsChartTab = 'trend' | 'proportion' | 'top'
 
 export interface DashboardChartPreferences {

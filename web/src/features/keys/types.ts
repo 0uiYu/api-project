@@ -90,6 +90,7 @@ export interface TokenAutoGroupsConfig {
 export type ApiKeysDialogType =
   | 'create'
   | 'update'
+  | 'rename'
   | 'delete'
   | 'batch-delete'
   | 'cc-switch'
