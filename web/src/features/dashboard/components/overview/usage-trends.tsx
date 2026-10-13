@@ -17,12 +17,6 @@ const LazyConsumptionDistributionChart = lazy(() =>
   }))
 )
 
-const LazyModelCharts = lazy(() =>
-  import('../models/model-charts').then((m) => ({
-    default: m.ModelCharts,
-  }))
-)
-
 type UsageRange = 'today' | '7d' | '30d'
 
 const RANGE_CONFIG: Record<
@@ -49,10 +43,8 @@ function UsageChartFallback() {
 }
 
 /**
- * Usage trend + model distribution for the data dashboard.
- *
- * Both charts read the same aggregate payload so switching the time range
- * costs one request instead of one per chart.
+ * A single usage trend keeps the dashboard useful without turning it into an
+ * analytics workspace. Detailed model analytics remain available to admins.
  */
 export function UsageTrends() {
   const { t } = useTranslation()
@@ -145,17 +137,6 @@ export function UsageTrends() {
         />
       </Suspense>
 
-      <Suspense fallback={<UsageChartFallback />}>
-        <LazyModelCharts
-          data={data}
-          loading={loading}
-          timeGranularity={granularity}
-          timeRange={{
-            start: timeRange.start_timestamp,
-            end: timeRange.end_timestamp,
-          }}
-        />
-      </Suspense>
     </div>
   )
 }
