@@ -37,7 +37,10 @@ export function useSidebarView(): ResolvedSidebarView {
     const role = userRole ?? ROLE.GUEST
     const isAdmin = role >= ROLE.ADMIN
     return configFilteredRoot
-      .filter((group) => (group.id === 'admin' ? isAdmin : true))
+      // Keep the two workspaces separate: administrators use the admin
+      // console, while regular users use the user console. This prevents
+      // admins from seeing unrelated end-user navigation entries.
+      .filter((group) => (isAdmin ? group.id === 'admin' : group.id !== 'admin'))
       .map((group) => {
         const items = group.items.filter(
           (item) => item.requiredRole === undefined || role >= item.requiredRole

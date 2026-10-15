@@ -47,6 +47,10 @@ export type PricingModel = {
   vendor_name?: string
   vendor_icon?: string
   vendor_description?: string
+  official_input_price?: number | null
+  official_output_price?: number | null
+  official_cache_price?: number | null
+  official_create_cache_price?: number | null
   quota_type: number
   model_ratio: number
   completion_ratio: number

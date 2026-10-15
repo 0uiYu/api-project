@@ -135,12 +135,17 @@ func AddRedemption(c *gin.Context) {
 }
 
 func DeleteRedemption(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
-	err := model.DeleteRedemptionById(id)
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		common.ApiError(c, err)
 		return
 	}
+	err = model.DeleteRedemptionById(id)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	recordManageAudit(c, "redemption.delete", map[string]any{"redemption_id": id})
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
@@ -180,6 +185,10 @@ func UpdateRedemption(c *gin.Context) {
 		cleanRedemption.ExpiredTime = redemption.ExpiredTime
 	}
 	if statusOnly != "" {
+		if redemption.Status != common.RedemptionCodeStatusEnabled && redemption.Status != common.RedemptionCodeStatusDisabled {
+			common.ApiError(c, errors.New("invalid redemption status"))
+			return
+		}
 		cleanRedemption.Status = redemption.Status
 	}
 	err = cleanRedemption.Update()
@@ -187,6 +196,18 @@ func UpdateRedemption(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	auditParams := map[string]any{
+		"redemption_id": redemption.Id,
+		"status_only":   statusOnly != "",
+	}
+	if statusOnly != "" {
+		auditParams["status"] = cleanRedemption.Status
+	} else {
+		auditParams["name"] = cleanRedemption.Name
+		auditParams["quota"] = logger.LogQuota(cleanRedemption.Quota)
+		auditParams["expired_time"] = cleanRedemption.ExpiredTime
+	}
+	recordManageAudit(c, "redemption.update", auditParams)
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
@@ -201,6 +222,7 @@ func DeleteInvalidRedemption(c *gin.Context) {
 		common.ApiError(c, err)
 		return
 	}
+	recordManageAudit(c, "redemption.delete_invalid", map[string]any{"count": rows})
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",

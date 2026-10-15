@@ -57,27 +57,40 @@ func sanitizeClickHouseLikePattern(input string) (string, error) {
 }
 
 type Log struct {
-	Id                int    `json:"id" gorm:"index:idx_created_at_id,priority:2;index:idx_user_id_id,priority:2"`
-	UserId            int    `json:"user_id" gorm:"index;index:idx_user_id_id,priority:1"`
-	CreatedAt         int64  `json:"created_at" gorm:"bigint;index:idx_created_at_id,priority:1;index:idx_created_at_type"`
-	Type              int    `json:"type" gorm:"index:idx_created_at_type"`
-	Content           string `json:"content"`
-	Username          string `json:"username" gorm:"index;index:index_username_model_name,priority:2;default:''"`
-	TokenName         string `json:"token_name" gorm:"index;default:''"`
-	ModelName         string `json:"model_name" gorm:"index;index:index_username_model_name,priority:1;default:''"`
-	Quota             int    `json:"quota" gorm:"default:0"`
-	PromptTokens      int    `json:"prompt_tokens" gorm:"default:0"`
-	CompletionTokens  int    `json:"completion_tokens" gorm:"default:0"`
-	UseTime           int    `json:"use_time" gorm:"default:0"`
-	IsStream          bool   `json:"is_stream"`
-	ChannelId         int    `json:"channel" gorm:"index"`
-	ChannelName       string `json:"channel_name" gorm:"->"`
-	TokenId           int    `json:"token_id" gorm:"default:0;index"`
-	Group             string `json:"group" gorm:"index"`
-	Ip                string `json:"ip" gorm:"index;default:''"`
-	RequestId         string `json:"request_id,omitempty" gorm:"type:varchar(64);index:idx_logs_request_id;default:''"`
-	UpstreamRequestId string `json:"upstream_request_id,omitempty" gorm:"type:varchar(128);index:idx_logs_upstream_request_id;default:''"`
-	Other             string `json:"other"`
+	Id                       int     `json:"id" gorm:"index:idx_created_at_id,priority:2;index:idx_user_id_id,priority:2"`
+	UserId                   int     `json:"user_id" gorm:"index;index:idx_user_id_id,priority:1"`
+	CreatedAt                int64   `json:"created_at" gorm:"bigint;index:idx_created_at_id,priority:1;index:idx_created_at_type"`
+	Type                     int     `json:"type" gorm:"index:idx_created_at_type"`
+	Content                  string  `json:"content"`
+	Username                 string  `json:"username" gorm:"index;index:index_username_model_name,priority:2;default:''"`
+	TokenName                string  `json:"token_name" gorm:"index;default:''"`
+	ModelName                string  `json:"model_name" gorm:"index;index:index_username_model_name,priority:1;default:''"`
+	Quota                    int     `json:"quota" gorm:"default:0"`
+	PromptTokens             int     `json:"prompt_tokens" gorm:"default:0"`
+	CompletionTokens         int     `json:"completion_tokens" gorm:"default:0"`
+	InputTokens              int     `json:"input_tokens" gorm:"default:0"`
+	OutputTokens             int     `json:"output_tokens" gorm:"default:0"`
+	CacheReadTokens          int     `json:"cache_read_tokens" gorm:"default:0"`
+	CacheWriteTokens         int     `json:"cache_write_tokens" gorm:"default:0"`
+	ReferenceCostUSD         float64 `json:"reference_cost_usd" gorm:"default:0"`
+	UserChargeUSD            float64 `json:"user_charge_usd" gorm:"default:0"`
+	ReferenceProfitUSD       float64 `json:"reference_profit_usd" gorm:"default:0"`
+	CostAvailable            bool    `json:"cost_available" gorm:"default:false"`
+	ModelRatioSnapshot       float64 `json:"model_ratio_snapshot" gorm:"default:0"`
+	CompletionRatioSnapshot  float64 `json:"completion_ratio_snapshot" gorm:"default:0"`
+	CacheRatioSnapshot       float64 `json:"cache_ratio_snapshot" gorm:"default:0"`
+	CreateCacheRatioSnapshot float64 `json:"create_cache_ratio_snapshot" gorm:"default:0"`
+	GroupRatioSnapshot       float64 `json:"group_ratio_snapshot" gorm:"default:0"`
+	UseTime                  int     `json:"use_time" gorm:"default:0"`
+	IsStream                 bool    `json:"is_stream"`
+	ChannelId                int     `json:"channel" gorm:"index"`
+	ChannelName              string  `json:"channel_name" gorm:"->"`
+	TokenId                  int     `json:"token_id" gorm:"default:0;index"`
+	Group                    string  `json:"group" gorm:"index"`
+	Ip                       string  `json:"ip" gorm:"index;default:''"`
+	RequestId                string  `json:"request_id,omitempty" gorm:"type:varchar(64);index:idx_logs_request_id;default:''"`
+	UpstreamRequestId        string  `json:"upstream_request_id,omitempty" gorm:"type:varchar(128);index:idx_logs_upstream_request_id;default:''"`
+	Other                    string  `json:"other"`
 }
 
 // don't use iota, avoid change log type value
@@ -322,18 +335,31 @@ func RecordErrorLog(c *gin.Context, userId int, channelId int, modelName string,
 }
 
 type RecordConsumeLogParams struct {
-	ChannelId        int       `json:"channel_id"`
-	PromptTokens     int       `json:"prompt_tokens"`
-	CompletionTokens int       `json:"completion_tokens"`
-	ModelName        string    `json:"model_name"`
-	TokenName        string    `json:"token_name"`
-	Quota            int       `json:"quota"`
-	Content          string    `json:"content"`
-	TokenId          int       `json:"token_id"`
-	UseTimeSeconds   int       `json:"use_time_seconds"`
-	IsStream         bool      `json:"is_stream"`
-	Group            string    `json:"group"`
-	Other            *LogOther `json:"other"`
+	ChannelId                int       `json:"channel_id"`
+	PromptTokens             int       `json:"prompt_tokens"`
+	CompletionTokens         int       `json:"completion_tokens"`
+	InputTokens              int       `json:"input_tokens"`
+	OutputTokens             int       `json:"output_tokens"`
+	CacheReadTokens          int       `json:"cache_read_tokens"`
+	CacheWriteTokens         int       `json:"cache_write_tokens"`
+	ReferenceCostUSD         float64   `json:"reference_cost_usd"`
+	UserChargeUSD            float64   `json:"user_charge_usd"`
+	ReferenceProfitUSD       float64   `json:"reference_profit_usd"`
+	CostAvailable            bool      `json:"cost_available"`
+	ModelRatioSnapshot       float64   `json:"model_ratio_snapshot"`
+	CompletionRatioSnapshot  float64   `json:"completion_ratio_snapshot"`
+	CacheRatioSnapshot       float64   `json:"cache_ratio_snapshot"`
+	CreateCacheRatioSnapshot float64   `json:"create_cache_ratio_snapshot"`
+	GroupRatioSnapshot       float64   `json:"group_ratio_snapshot"`
+	ModelName                string    `json:"model_name"`
+	TokenName                string    `json:"token_name"`
+	Quota                    int       `json:"quota"`
+	Content                  string    `json:"content"`
+	TokenId                  int       `json:"token_id"`
+	UseTimeSeconds           int       `json:"use_time_seconds"`
+	IsStream                 bool      `json:"is_stream"`
+	Group                    string    `json:"group"`
+	Other                    *LogOther `json:"other"`
 }
 
 func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams) {
@@ -354,21 +380,34 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 		}
 	}
 	log := &Log{
-		UserId:           userId,
-		Username:         username,
-		CreatedAt:        createdAt,
-		Type:             LogTypeConsume,
-		Content:          params.Content,
-		PromptTokens:     params.PromptTokens,
-		CompletionTokens: params.CompletionTokens,
-		TokenName:        params.TokenName,
-		ModelName:        params.ModelName,
-		Quota:            params.Quota,
-		ChannelId:        params.ChannelId,
-		TokenId:          params.TokenId,
-		UseTime:          params.UseTimeSeconds,
-		IsStream:         params.IsStream,
-		Group:            params.Group,
+		UserId:                   userId,
+		Username:                 username,
+		CreatedAt:                createdAt,
+		Type:                     LogTypeConsume,
+		Content:                  params.Content,
+		PromptTokens:             params.PromptTokens,
+		CompletionTokens:         params.CompletionTokens,
+		InputTokens:              params.InputTokens,
+		OutputTokens:             params.OutputTokens,
+		CacheReadTokens:          params.CacheReadTokens,
+		CacheWriteTokens:         params.CacheWriteTokens,
+		ReferenceCostUSD:         params.ReferenceCostUSD,
+		UserChargeUSD:            params.UserChargeUSD,
+		ReferenceProfitUSD:       params.ReferenceProfitUSD,
+		CostAvailable:            params.CostAvailable,
+		ModelRatioSnapshot:       params.ModelRatioSnapshot,
+		CompletionRatioSnapshot:  params.CompletionRatioSnapshot,
+		CacheRatioSnapshot:       params.CacheRatioSnapshot,
+		CreateCacheRatioSnapshot: params.CreateCacheRatioSnapshot,
+		GroupRatioSnapshot:       params.GroupRatioSnapshot,
+		TokenName:                params.TokenName,
+		ModelName:                params.ModelName,
+		Quota:                    params.Quota,
+		ChannelId:                params.ChannelId,
+		TokenId:                  params.TokenId,
+		UseTime:                  params.UseTimeSeconds,
+		IsStream:                 params.IsStream,
+		Group:                    params.Group,
 		Ip: func() string {
 			if needRecordIp {
 				return c.ClientIP()

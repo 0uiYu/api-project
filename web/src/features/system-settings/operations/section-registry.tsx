@@ -52,6 +52,7 @@ const OPERATIONS_SECTIONS = [
           SMTPAccount: settings.SMTPAccount,
           SMTPFrom: settings.SMTPFrom,
           SMTPToken: settings.SMTPToken,
+          RedemptionWebhookSecret: settings.RedemptionWebhookSecret,
           SMTPSSLEnabled: settings.SMTPSSLEnabled,
           SMTPStartTLSEnabled: settings.SMTPStartTLSEnabled,
           SMTPInsecureSkipVerify: settings.SMTPInsecureSkipVerify,

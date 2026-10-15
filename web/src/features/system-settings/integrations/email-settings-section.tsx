@@ -42,6 +42,7 @@ const createEmailSchema = (t: (key: string) => string) =>
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
     }, t('Enter a valid email or leave blank')),
     SMTPToken: z.string(),
+    RedemptionWebhookSecret: z.string(),
     SMTPSSLEnabled: z.boolean(),
     SMTPStartTLSEnabled: z.boolean(),
     SMTPInsecureSkipVerify: z.boolean(),
@@ -87,6 +88,7 @@ export function EmailSettingsSection({
       SMTPAccount: values.SMTPAccount.trim(),
       SMTPFrom: values.SMTPFrom.trim(),
       SMTPToken: values.SMTPToken.trim(),
+      RedemptionWebhookSecret: values.RedemptionWebhookSecret.trim(),
       SMTPSSLEnabled: securityMode === 'ssl_tls',
       SMTPStartTLSEnabled: securityMode === 'starttls',
       SMTPInsecureSkipVerify: values.SMTPInsecureSkipVerify,
@@ -99,6 +101,7 @@ export function EmailSettingsSection({
       SMTPAccount: defaultValues.SMTPAccount.trim(),
       SMTPFrom: defaultValues.SMTPFrom.trim(),
       SMTPToken: defaultValues.SMTPToken.trim(),
+      RedemptionWebhookSecret: defaultValues.RedemptionWebhookSecret.trim(),
       SMTPSSLEnabled: defaultValues.SMTPSSLEnabled,
       SMTPStartTLSEnabled: defaultValues.SMTPStartTLSEnabled,
       SMTPInsecureSkipVerify: defaultValues.SMTPInsecureSkipVerify,
@@ -125,6 +128,16 @@ export function EmailSettingsSection({
 
     if (sanitized.SMTPToken && sanitized.SMTPToken !== initial.SMTPToken) {
       updates.push({ key: 'SMTPToken', value: sanitized.SMTPToken })
+    }
+
+    if (
+      sanitized.RedemptionWebhookSecret &&
+      sanitized.RedemptionWebhookSecret !== initial.RedemptionWebhookSecret
+    ) {
+      updates.push({
+        key: 'RedemptionWebhookSecret',
+        value: sanitized.RedemptionWebhookSecret,
+      })
     }
 
     if (sanitized.SMTPSSLEnabled !== initial.SMTPSSLEnabled) {
@@ -185,6 +198,23 @@ export function EmailSettingsSection({
                 </FormControl>
                 <FormDescription>
                   {t('Hostname or IP of your SMTP provider')}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name='RedemptionWebhookSecret'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('Redemption webhook secret')}</FormLabel>
+                <FormControl>
+                  <Input type='password' autoComplete='new-password' {...field} />
+                </FormControl>
+                <FormDescription>
+                  {t('HMAC secret used by the external shop redemption callback')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>

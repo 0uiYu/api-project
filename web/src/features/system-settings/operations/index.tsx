@@ -18,6 +18,7 @@ const defaultOperationsSettings: OperationsSettings = {
   SMTPAccount: '',
   SMTPFrom: '',
   SMTPToken: '',
+  RedemptionWebhookSecret: '',
   SMTPSSLEnabled: false,
   SMTPStartTLSEnabled: false,
   SMTPInsecureSkipVerify: false,

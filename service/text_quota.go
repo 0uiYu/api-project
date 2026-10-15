@@ -532,20 +532,35 @@ func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, us
 	}
 
 	attachQuotaSaturation(ctx, relayInfo, other)
+	referenceCostUSD, costAvailable := model.CalculateOfficialCost(logModel, summary.PromptTokens, summary.CompletionTokens, summary.CacheTokens, cacheWriteTokens)
+	userChargeUSD := float64(summary.Quota) / common.QuotaPerUnit
 
 	model.RecordConsumeLog(ctx, relayInfo.UserId, model.RecordConsumeLogParams{
-		ChannelId:        relayInfo.ChannelId,
-		PromptTokens:     summary.PromptTokens,
-		CompletionTokens: summary.CompletionTokens,
-		ModelName:        logModel,
-		TokenName:        summary.TokenName,
-		Quota:            summary.Quota,
-		Content:          logContent,
-		TokenId:          relayInfo.TokenId,
-		UseTimeSeconds:   int(summary.UseTimeSeconds),
-		IsStream:         relayInfo.IsStream,
-		Group:            relayInfo.UsingGroup,
-		Other:            other,
+		ChannelId:                relayInfo.ChannelId,
+		PromptTokens:             summary.PromptTokens,
+		CompletionTokens:         summary.CompletionTokens,
+		InputTokens:              summary.PromptTokens + summary.CacheTokens + summary.CacheCreationTokens,
+		OutputTokens:             summary.CompletionTokens,
+		CacheReadTokens:          summary.CacheTokens,
+		CacheWriteTokens:         cacheWriteTokens,
+		ReferenceCostUSD:         referenceCostUSD,
+		UserChargeUSD:            userChargeUSD,
+		ReferenceProfitUSD:       userChargeUSD - referenceCostUSD,
+		CostAvailable:            costAvailable,
+		ModelRatioSnapshot:       summary.ModelRatio,
+		CompletionRatioSnapshot:  summary.CompletionRatio,
+		CacheRatioSnapshot:       summary.CacheRatio,
+		CreateCacheRatioSnapshot: summary.CacheCreationRatio,
+		GroupRatioSnapshot:       summary.GroupRatio,
+		ModelName:                logModel,
+		TokenName:                summary.TokenName,
+		Quota:                    summary.Quota,
+		Content:                  logContent,
+		TokenId:                  relayInfo.TokenId,
+		UseTimeSeconds:           int(summary.UseTimeSeconds),
+		IsStream:                 relayInfo.IsStream,
+		Group:                    relayInfo.UsingGroup,
+		Other:                    other,
 	})
 	relayInfo.PerformanceOutputTokens = int64(summary.CompletionTokens)
 }

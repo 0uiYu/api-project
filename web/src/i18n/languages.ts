@@ -21,6 +21,13 @@ export function normalizeInterfaceLanguage(value?: string | null): string {
   return normalized.startsWith('zh') ? 'zhCN' : 'en'
 }
 
+/** Return the canonical interface code used by React components. */
+export function getInterfaceLanguage(
+  value?: string | null
+): InterfaceLanguageCode {
+  return normalizeInterfaceLanguage(value) as InterfaceLanguageCode
+}
+
 /**
  * Map a browser-detected locale onto the interface language codes this project
  * uses with i18next (`zhCN` / `en`).

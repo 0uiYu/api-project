@@ -22,6 +22,10 @@ import { ModelPriceCell, type ModelPriceCellOptions } from './model-price-cell'
 
 export type PricingColumnsOptions = ModelPriceCellOptions
 
+function formatReferencePrice(value: number | null | undefined): string {
+  return value == null ? '—' : String(value)
+}
+
 export function usePricingColumns(
   options: PricingColumnsOptions = {}
 ): ColumnDef<PricingModel>[] {
@@ -74,6 +78,24 @@ export function usePricingColumns(
         <ModelPriceCell model={row.original} options={options} />
       ),
       size: 180,
+      enableSorting: false,
+    },
+
+    {
+      id: 'official_price',
+      header: t('Official reference price'),
+      cell: ({ row }) => {
+        const model = row.original
+        return (
+          <div className='grid min-w-[180px] grid-cols-2 gap-x-3 gap-y-0.5 text-xs tabular-nums'>
+            <span>{t('Input')}: {formatReferencePrice(model.official_input_price)}</span>
+            <span>{t('Output')}: {formatReferencePrice(model.official_output_price)}</span>
+            <span>{t('Cache read')}: {formatReferencePrice(model.official_cache_price)}</span>
+            <span>{t('Cache write')}: {formatReferencePrice(model.official_create_cache_price)}</span>
+          </div>
+        )
+      },
+      size: 250,
       enableSorting: false,
     },
 

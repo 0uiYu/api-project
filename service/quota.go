@@ -240,19 +240,40 @@ func PostWssConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, mod
 		InjectTieredBillingInfo(other, relayInfo, tieredResult)
 	}
 	attachQuotaSaturation(ctx, relayInfo, other)
+	cacheWriteTokens := usage.InputTokenDetails.CachedCreationTokens
+	cacheReadTokens := usage.InputTokenDetails.CachedTokens
+	billableInputTokens := usage.InputTokens - cacheReadTokens - cacheWriteTokens
+	if billableInputTokens < 0 {
+		billableInputTokens = 0
+	}
+	referenceCostUSD, costAvailable := model.CalculateOfficialCost(logModel, billableInputTokens, usage.OutputTokens, cacheReadTokens, cacheWriteTokens)
+	userChargeUSD := float64(quota) / common.QuotaPerUnit
 	model.RecordConsumeLog(ctx, relayInfo.UserId, model.RecordConsumeLogParams{
-		ChannelId:        relayInfo.ChannelId,
-		PromptTokens:     usage.InputTokens,
-		CompletionTokens: usage.OutputTokens,
-		ModelName:        logModel,
-		TokenName:        tokenName,
-		Quota:            quota,
-		Content:          logContent,
-		TokenId:          relayInfo.TokenId,
-		UseTimeSeconds:   int(useTimeSeconds),
-		IsStream:         relayInfo.IsStream,
-		Group:            relayInfo.UsingGroup,
-		Other:            other,
+		ChannelId:                relayInfo.ChannelId,
+		PromptTokens:             usage.InputTokens,
+		CompletionTokens:         usage.OutputTokens,
+		InputTokens:              usage.InputTokens,
+		OutputTokens:             usage.OutputTokens,
+		CacheReadTokens:          cacheReadTokens,
+		CacheWriteTokens:         cacheWriteTokens,
+		ReferenceCostUSD:         referenceCostUSD,
+		UserChargeUSD:            userChargeUSD,
+		ReferenceProfitUSD:       userChargeUSD - referenceCostUSD,
+		CostAvailable:            costAvailable,
+		ModelRatioSnapshot:       relayInfo.PriceData.ModelRatio,
+		CompletionRatioSnapshot:  relayInfo.PriceData.CompletionRatio,
+		CacheRatioSnapshot:       relayInfo.PriceData.CacheRatio,
+		CreateCacheRatioSnapshot: relayInfo.PriceData.CacheCreationRatio,
+		GroupRatioSnapshot:       relayInfo.PriceData.GroupRatioInfo.GroupRatio,
+		ModelName:                logModel,
+		TokenName:                tokenName,
+		Quota:                    quota,
+		Content:                  logContent,
+		TokenId:                  relayInfo.TokenId,
+		UseTimeSeconds:           int(useTimeSeconds),
+		IsStream:                 relayInfo.IsStream,
+		Group:                    relayInfo.UsingGroup,
+		Other:                    other,
 	})
 }
 
@@ -373,19 +394,40 @@ func PostAudioConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, u
 		InjectTieredBillingInfo(other, relayInfo, tieredResult)
 	}
 	attachQuotaSaturation(ctx, relayInfo, other)
+	cacheWriteTokens := usage.PromptTokensDetails.CacheCreationTokensTotal()
+	cacheReadTokens := usage.PromptTokensDetails.CachedTokens
+	billableInputTokens := usage.InputTokens - cacheReadTokens - cacheWriteTokens
+	if billableInputTokens < 0 {
+		billableInputTokens = 0
+	}
+	referenceCostUSD, costAvailable := model.CalculateOfficialCost(logModel, billableInputTokens, usage.OutputTokens, cacheReadTokens, cacheWriteTokens)
+	userChargeUSD := float64(quota) / common.QuotaPerUnit
 	model.RecordConsumeLog(ctx, relayInfo.UserId, model.RecordConsumeLogParams{
-		ChannelId:        relayInfo.ChannelId,
-		PromptTokens:     usage.PromptTokens,
-		CompletionTokens: usage.CompletionTokens,
-		ModelName:        logModel,
-		TokenName:        tokenName,
-		Quota:            quota,
-		Content:          logContent,
-		TokenId:          relayInfo.TokenId,
-		UseTimeSeconds:   int(useTimeSeconds),
-		IsStream:         relayInfo.IsStream,
-		Group:            relayInfo.UsingGroup,
-		Other:            other,
+		ChannelId:                relayInfo.ChannelId,
+		PromptTokens:             usage.PromptTokens,
+		CompletionTokens:         usage.CompletionTokens,
+		InputTokens:              usage.InputTokens,
+		OutputTokens:             usage.OutputTokens,
+		CacheReadTokens:          cacheReadTokens,
+		CacheWriteTokens:         cacheWriteTokens,
+		ReferenceCostUSD:         referenceCostUSD,
+		UserChargeUSD:            userChargeUSD,
+		ReferenceProfitUSD:       userChargeUSD - referenceCostUSD,
+		CostAvailable:            costAvailable,
+		ModelRatioSnapshot:       relayInfo.PriceData.ModelRatio,
+		CompletionRatioSnapshot:  relayInfo.PriceData.CompletionRatio,
+		CacheRatioSnapshot:       relayInfo.PriceData.CacheRatio,
+		CreateCacheRatioSnapshot: relayInfo.PriceData.CacheCreationRatio,
+		GroupRatioSnapshot:       relayInfo.PriceData.GroupRatioInfo.GroupRatio,
+		ModelName:                logModel,
+		TokenName:                tokenName,
+		Quota:                    quota,
+		Content:                  logContent,
+		TokenId:                  relayInfo.TokenId,
+		UseTimeSeconds:           int(useTimeSeconds),
+		IsStream:                 relayInfo.IsStream,
+		Group:                    relayInfo.UsingGroup,
+		Other:                    other,
 	})
 	relayInfo.PerformanceOutputTokens = int64(usage.CompletionTokens)
 }

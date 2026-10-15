@@ -349,6 +349,7 @@ export type OperationsSettings = {
   SMTPAccount: string
   SMTPFrom: string
   SMTPToken: string
+  RedemptionWebhookSecret: string
   SMTPSSLEnabled: boolean
   SMTPStartTLSEnabled: boolean
   SMTPInsecureSkipVerify: boolean

@@ -1,8 +1,8 @@
 import { CalendarDays } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import type { DateRange } from 'react-day-picker'
 import { enUS, zhCN } from 'react-day-picker/locale'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -11,6 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { getInterfaceLanguage } from '@/i18n/languages'
 import { formatDateStr } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -31,8 +32,11 @@ export function TrendDateRangePicker(props: TrendDateRangePickerProps) {
   const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
   const calendarLocale = useMemo(
-    () => ({ en: enUS, zhCN })[i18n.language as 'en' | 'zhCN'] ?? enUS,
-    [i18n.language]
+    () =>
+      ({ en: enUS, zhCN })[
+        getInterfaceLanguage(i18n.resolvedLanguage || i18n.language)
+      ] ?? enUS,
+    [i18n.language, i18n.resolvedLanguage]
   )
 
   const selected: DateRange | undefined = props.start

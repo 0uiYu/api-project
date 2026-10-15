@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   INTERFACE_LANGUAGE_OPTIONS,
-  normalizeInterfaceLanguage,
+  getInterfaceLanguage,
 } from '@/i18n/languages'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -24,7 +24,9 @@ type LanguageSwitcherProps = {
 export function LanguageSwitcher(props: LanguageSwitcherProps) {
   const { i18n, t } = useTranslation()
   const user = useAuthStore((s) => s.auth.user)
-  const currentLanguage = normalizeInterfaceLanguage(i18n.language)
+  const currentLanguage = getInterfaceLanguage(
+    i18n.resolvedLanguage || i18n.language
+  )
   const handleChangeLanguage = useCallback(
     async (code: string) => {
       await i18n.changeLanguage(code)

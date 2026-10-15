@@ -106,6 +106,21 @@ export function Pricing(props: PricingProps) {
     [usableGroup]
   )
 
+  const modelOptions = useMemo(() => {
+    const seen = new Set<string>()
+    return (models || [])
+      .filter((model) => {
+        if (seen.has(model.model_name)) return false
+        seen.add(model.model_name)
+        return true
+      })
+      .sort((a, b) => a.model_name.localeCompare(b.model_name))
+  }, [models])
+  const ratioOptions = useMemo(
+    () => [...new Set(Object.values(groupRatio || {}).map((ratio) => `x${ratio}`))].sort(),
+    [groupRatio]
+  )
+
   const handleClearAll = useCallback(() => {
     clearFilters()
     clearSearch()
@@ -233,11 +248,25 @@ export function Pricing(props: PricingProps) {
           vendors={vendors || []}
           vendorFilter={vendorFilter}
           onVendorChange={setVendorFilter}
+          models={modelOptions}
+          modelFilter={searchInput}
+          onModelChange={setSearchInput}
+          ratios={ratioOptions}
+          ratioFilter={groupFilter}
+          onRatioChange={(value) => setGroupFilter(value === FILTER_ALL ? FILTER_ALL : value.replace(/^x/, ''))}
         />
         {isLoading ? (
           <LoadingSkeleton viewMode={viewMode} />
         ) : (
-          renderPricingContent()
+          <PricingTable
+            models={filteredModels}
+            priceRate={priceRate}
+            usdExchangeRate={usdExchangeRate}
+            tokenUnit={tokenUnit}
+            showRechargePrice={showRechargePrice}
+            selectedGroup={groupFilter}
+            onModelClick={handleModelClick}
+          />
         )}
         {detailsDrawer}
       </UserPortalPage>

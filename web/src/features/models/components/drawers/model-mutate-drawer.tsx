@@ -521,6 +521,48 @@ export function ModelMutateDrawer(props: {
                     {/* Status & Sync */}
                     <SideDrawerSection>
                       <h3 className='text-sm font-semibold'>
+                        {t('Official reference pricing')}
+                      </h3>
+                      <p className='text-muted-foreground text-xs'>
+                        {t('Optional public reference prices. These values do not affect billing.')}
+                      </p>
+                      <div className='grid gap-3 sm:grid-cols-2'>
+                        {([
+                          ['official_input_price', 'Official input price'],
+                          ['official_output_price', 'Official output price'],
+                          ['official_cache_price', 'Official cache read price'],
+                          ['official_create_cache_price', 'Official cache creation price'],
+                        ] as const).map(([name, label]) => (
+                          <FormField
+                            key={name}
+                            control={form.control}
+                            name={name}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>{t(label)}</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type='number'
+                                    min='0'
+                                    step='any'
+                                    value={field.value ?? ''}
+                                    onChange={(event) => {
+                                      const value = event.target.value
+                                      field.onChange(value === '' ? null : Number(value))
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </SideDrawerSection>
+
+                    {/* Status & Sync */}
+                    <SideDrawerSection>
+                      <h3 className='text-sm font-semibold'>
                         {t('Status & Sync')}
                       </h3>
 

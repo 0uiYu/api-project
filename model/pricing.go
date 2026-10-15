@@ -26,29 +26,60 @@ type PricingPluginVariant struct {
 }
 
 type Pricing struct {
-	BillingPluginVariants  []PricingPluginVariant               `json:"billing_plugin_variants,omitempty"`
-	ModelName              string                               `json:"model_name"`
-	Description            string                               `json:"description,omitempty"`
-	Icon                   string                               `json:"icon,omitempty"`
-	Tags                   string                               `json:"tags,omitempty"`
-	VendorID               int                                  `json:"vendor_id,omitempty"`
-	QuotaType              int                                  `json:"quota_type"`
-	ModelRatio             float64                              `json:"model_ratio"`
-	ModelPrice             float64                              `json:"model_price"`
-	OwnerBy                string                               `json:"owner_by"`
-	CompletionRatio        float64                              `json:"completion_ratio"`
-	CacheRatio             *float64                             `json:"cache_ratio,omitempty"`
-	CreateCacheRatio       *float64                             `json:"create_cache_ratio,omitempty"`
-	ImageRatio             *float64                             `json:"image_ratio,omitempty"`
-	AudioRatio             *float64                             `json:"audio_ratio,omitempty"`
-	AudioCompletionRatio   *float64                             `json:"audio_completion_ratio,omitempty"`
-	EnableGroup            []string                             `json:"enable_groups"`
-	SupportedEndpointTypes []constant.EndpointType              `json:"supported_endpoint_types"`
-	BillingMode            string                               `json:"billing_mode,omitempty"`
-	BillingExpr            string                               `json:"billing_expr,omitempty"`
-	BillingUsageSchema     map[string]jsplugin.UsageFieldSchema `json:"billing_usage_schema,omitempty"`
-	BillingUsageExamples   []jsplugin.UsageExample              `json:"billing_usage_examples,omitempty"`
-	PricingVersion         string                               `json:"pricing_version,omitempty"`
+	BillingPluginVariants    []PricingPluginVariant               `json:"billing_plugin_variants,omitempty"`
+	ModelName                string                               `json:"model_name"`
+	Description              string                               `json:"description,omitempty"`
+	Icon                     string                               `json:"icon,omitempty"`
+	Tags                     string                               `json:"tags,omitempty"`
+	VendorID                 int                                  `json:"vendor_id,omitempty"`
+	OfficialInputPrice       *float64                             `json:"official_input_price,omitempty"`
+	OfficialOutputPrice      *float64                             `json:"official_output_price,omitempty"`
+	OfficialCachePrice       *float64                             `json:"official_cache_price,omitempty"`
+	OfficialCreateCachePrice *float64                             `json:"official_create_cache_price,omitempty"`
+	QuotaType                int                                  `json:"quota_type"`
+	ModelRatio               float64                              `json:"model_ratio"`
+	ModelPrice               float64                              `json:"model_price"`
+	OwnerBy                  string                               `json:"owner_by"`
+	CompletionRatio          float64                              `json:"completion_ratio"`
+	CacheRatio               *float64                             `json:"cache_ratio,omitempty"`
+	CreateCacheRatio         *float64                             `json:"create_cache_ratio,omitempty"`
+	ImageRatio               *float64                             `json:"image_ratio,omitempty"`
+	AudioRatio               *float64                             `json:"audio_ratio,omitempty"`
+	AudioCompletionRatio     *float64                             `json:"audio_completion_ratio,omitempty"`
+	EnableGroup              []string                             `json:"enable_groups"`
+	SupportedEndpointTypes   []constant.EndpointType              `json:"supported_endpoint_types"`
+	BillingMode              string                               `json:"billing_mode,omitempty"`
+	BillingExpr              string                               `json:"billing_expr,omitempty"`
+	BillingUsageSchema       map[string]jsplugin.UsageFieldSchema `json:"billing_usage_schema,omitempty"`
+	BillingUsageExamples     []jsplugin.UsageExample              `json:"billing_usage_examples,omitempty"`
+	PricingVersion           string                               `json:"pricing_version,omitempty"`
+}
+
+// CalculateOfficialCost returns the configured reference provider cost in USD.
+// It is unavailable when any required component price is missing; callers must
+// not treat a partial reference price as a real supplier bill.
+func CalculateOfficialCost(modelName string, input, output, cacheRead, cacheWrite int) (float64, bool) {
+	for _, pricing := range GetPricing() {
+		if pricing.ModelName != modelName || pricing.OfficialInputPrice == nil || pricing.OfficialOutputPrice == nil {
+			continue
+		}
+		cost := float64(input)*(*pricing.OfficialInputPrice)/1_000_000 +
+			float64(output)*(*pricing.OfficialOutputPrice)/1_000_000
+		if cacheRead > 0 {
+			if pricing.OfficialCachePrice == nil {
+				return 0, false
+			}
+			cost += float64(cacheRead) * (*pricing.OfficialCachePrice) / 1_000_000
+		}
+		if cacheWrite > 0 {
+			if pricing.OfficialCreateCachePrice == nil {
+				return 0, false
+			}
+			cost += float64(cacheWrite) * (*pricing.OfficialCreateCachePrice) / 1_000_000
+		}
+		return cost, true
+	}
+	return 0, false
 }
 
 type PricingVendor struct {
@@ -343,6 +374,10 @@ func updatePricing() {
 			pricing.Icon = meta.Icon
 			pricing.Tags = meta.Tags
 			pricing.VendorID = meta.VendorID
+			pricing.OfficialInputPrice = meta.OfficialInputPrice
+			pricing.OfficialOutputPrice = meta.OfficialOutputPrice
+			pricing.OfficialCachePrice = meta.OfficialCachePrice
+			pricing.OfficialCreateCachePrice = meta.OfficialCreateCachePrice
 		}
 		modelPrice, findPrice := ratio_setting.GetModelPrice(model, false)
 		if findPrice {

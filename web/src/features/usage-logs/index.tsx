@@ -103,8 +103,13 @@ function UsageLogsContent() {
     [setViewScope]
   )
 
-  const pageMeta =
-    activeCategory === 'common' ? SECTION_META.common : SECTION_META.task
+  let pageMeta = SECTION_META.task
+  if (activeCategory === 'common') {
+    pageMeta =
+      canManageScope && viewScope === 'all'
+        ? { titleKey: 'Call Logs' }
+        : SECTION_META.common
+  }
   const showTaskSwitcher =
     activeCategory !== 'common' && visibleSections.length > 1
 

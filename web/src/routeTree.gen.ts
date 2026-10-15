@@ -26,6 +26,7 @@ import { Route as errors403RouteImport } from './routes/(errors)/403'
 import { Route as errors404RouteImport } from './routes/(errors)/404'
 import { Route as errors500RouteImport } from './routes/(errors)/500'
 import { Route as errors503RouteImport } from './routes/(errors)/503'
+import { Route as AuthenticatedChannelStatusRouteImport } from './routes/_authenticated/channel-status'
 import { Route as AuthenticatedChat2linkRouteImport } from './routes/_authenticated/chat2link'
 import { Route as AuthenticatedSystemSettingsRouteRouteImport } from './routes/_authenticated/system-settings/route'
 import { Route as AboutIndexRouteImport } from './routes/about/index'
@@ -34,6 +35,7 @@ import { Route as PricingIndexRouteImport } from './routes/pricing/index'
 import { Route as RankingsIndexRouteImport } from './routes/rankings/index'
 import { Route as SetupIndexRouteImport } from './routes/setup/index'
 import { Route as authUserResetRouteImport } from './routes/(auth)/user/reset'
+import { Route as AuthenticatedAdminTokensIndexRouteImport } from './routes/_authenticated/admin-tokens/index'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels/index'
 import { Route as AuthenticatedChatChatIdRouteImport } from './routes/_authenticated/chat/$chatId'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
@@ -159,6 +161,12 @@ const errors503Route = errors503RouteImport.update({
   path: '/503',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedChannelStatusRoute =
+  AuthenticatedChannelStatusRouteImport.update({
+    id: '/channel-status',
+    path: '/channel-status',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedChat2linkRoute = AuthenticatedChat2linkRouteImport.update({
   id: '/chat2link',
   path: '/chat2link',
@@ -200,6 +208,12 @@ const authUserResetRoute = authUserResetRouteImport.update({
   path: '/user/reset',
   getParentRoute: () => authRouteRoute,
 } as any)
+const AuthenticatedAdminTokensIndexRoute =
+  AuthenticatedAdminTokensIndexRouteImport.update({
+    id: '/admin-tokens/',
+    path: '/admin-tokens/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedChannelsIndexRoute =
   AuthenticatedChannelsIndexRouteImport.update({
     id: '/channels/',
@@ -460,6 +474,7 @@ export interface FileRoutesByFullPath {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/channel-status': typeof AuthenticatedChannelStatusRoute
   '/chat2link': typeof AuthenticatedChat2linkRoute
   '/oauth/$provider': typeof OauthProviderRoute
   '/about/': typeof AboutIndexRoute
@@ -475,6 +490,7 @@ export interface FileRoutesByFullPath {
   '/usage-logs/audit': typeof AuthenticatedUsageLogsAuditRoute
   '/wallet/affiliate': typeof AuthenticatedWalletAffiliateRoute
   '/wallet/subscriptions': typeof AuthenticatedWalletSubscriptionsRoute
+  '/admin-tokens/': typeof AuthenticatedAdminTokensIndexRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/keys/': typeof AuthenticatedKeysIndexRoute
@@ -525,6 +541,7 @@ export interface FileRoutesByTo {
   '/404': typeof errors404Route
   '/500': typeof errors500Route
   '/503': typeof errors503Route
+  '/channel-status': typeof AuthenticatedChannelStatusRoute
   '/chat2link': typeof AuthenticatedChat2linkRoute
   '/oauth/$provider': typeof OauthProviderRoute
   '/about': typeof AboutIndexRoute
@@ -540,6 +557,7 @@ export interface FileRoutesByTo {
   '/usage-logs/audit': typeof AuthenticatedUsageLogsAuditRoute
   '/wallet/affiliate': typeof AuthenticatedWalletAffiliateRoute
   '/wallet/subscriptions': typeof AuthenticatedWalletSubscriptionsRoute
+  '/admin-tokens': typeof AuthenticatedAdminTokensIndexRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/keys': typeof AuthenticatedKeysIndexRoute
@@ -594,6 +612,7 @@ export interface FileRoutesById {
   '/(errors)/404': typeof errors404Route
   '/(errors)/500': typeof errors500Route
   '/(errors)/503': typeof errors503Route
+  '/_authenticated/channel-status': typeof AuthenticatedChannelStatusRoute
   '/_authenticated/chat2link': typeof AuthenticatedChat2linkRoute
   '/oauth/$provider': typeof OauthProviderRoute
   '/about/': typeof AboutIndexRoute
@@ -609,6 +628,7 @@ export interface FileRoutesById {
   '/_authenticated/usage-logs/audit': typeof AuthenticatedUsageLogsAuditRoute
   '/_authenticated/wallet/affiliate': typeof AuthenticatedWalletAffiliateRoute
   '/_authenticated/wallet/subscriptions': typeof AuthenticatedWalletSubscriptionsRoute
+  '/_authenticated/admin-tokens/': typeof AuthenticatedAdminTokensIndexRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/keys/': typeof AuthenticatedKeysIndexRoute
@@ -662,6 +682,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/channel-status'
     | '/chat2link'
     | '/oauth/$provider'
     | '/about/'
@@ -677,6 +698,7 @@ export interface FileRouteTypes {
     | '/usage-logs/audit'
     | '/wallet/affiliate'
     | '/wallet/subscriptions'
+    | '/admin-tokens/'
     | '/channels/'
     | '/dashboard/'
     | '/keys/'
@@ -727,6 +749,7 @@ export interface FileRouteTypes {
     | '/404'
     | '/500'
     | '/503'
+    | '/channel-status'
     | '/chat2link'
     | '/oauth/$provider'
     | '/about'
@@ -742,6 +765,7 @@ export interface FileRouteTypes {
     | '/usage-logs/audit'
     | '/wallet/affiliate'
     | '/wallet/subscriptions'
+    | '/admin-tokens'
     | '/channels'
     | '/dashboard'
     | '/keys'
@@ -795,6 +819,7 @@ export interface FileRouteTypes {
     | '/(errors)/404'
     | '/(errors)/500'
     | '/(errors)/503'
+    | '/_authenticated/channel-status'
     | '/_authenticated/chat2link'
     | '/oauth/$provider'
     | '/about/'
@@ -810,6 +835,7 @@ export interface FileRouteTypes {
     | '/_authenticated/usage-logs/audit'
     | '/_authenticated/wallet/affiliate'
     | '/_authenticated/wallet/subscriptions'
+    | '/_authenticated/admin-tokens/'
     | '/_authenticated/channels/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/keys/'
@@ -985,6 +1011,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof errors503RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/channel-status': {
+      id: '/_authenticated/channel-status'
+      path: '/channel-status'
+      fullPath: '/channel-status'
+      preLoaderRoute: typeof AuthenticatedChannelStatusRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/chat2link': {
       id: '/_authenticated/chat2link'
       path: '/chat2link'
@@ -1040,6 +1073,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/user/reset'
       preLoaderRoute: typeof authUserResetRouteImport
       parentRoute: typeof authRouteRoute
+    }
+    '/_authenticated/admin-tokens/': {
+      id: '/_authenticated/admin-tokens/'
+      path: '/admin-tokens'
+      fullPath: '/admin-tokens/'
+      preLoaderRoute: typeof AuthenticatedAdminTokensIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/channels/': {
       id: '/_authenticated/channels/'
@@ -1422,6 +1462,7 @@ const AuthenticatedSystemSettingsRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedSystemSettingsRouteRoute: typeof AuthenticatedSystemSettingsRouteRouteWithChildren
+  AuthenticatedChannelStatusRoute: typeof AuthenticatedChannelStatusRoute
   AuthenticatedChat2linkRoute: typeof AuthenticatedChat2linkRoute
   AuthenticatedChatChatIdRoute: typeof AuthenticatedChatChatIdRoute
   AuthenticatedDashboardSectionRoute: typeof AuthenticatedDashboardSectionRoute
@@ -1431,6 +1472,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUsageLogsAuditRoute: typeof AuthenticatedUsageLogsAuditRoute
   AuthenticatedWalletAffiliateRoute: typeof AuthenticatedWalletAffiliateRoute
   AuthenticatedWalletSubscriptionsRoute: typeof AuthenticatedWalletSubscriptionsRoute
+  AuthenticatedAdminTokensIndexRoute: typeof AuthenticatedAdminTokensIndexRoute
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedKeysIndexRoute: typeof AuthenticatedKeysIndexRoute
@@ -1451,6 +1493,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSystemSettingsRouteRoute:
     AuthenticatedSystemSettingsRouteRouteWithChildren,
+  AuthenticatedChannelStatusRoute: AuthenticatedChannelStatusRoute,
   AuthenticatedChat2linkRoute: AuthenticatedChat2linkRoute,
   AuthenticatedChatChatIdRoute: AuthenticatedChatChatIdRoute,
   AuthenticatedDashboardSectionRoute: AuthenticatedDashboardSectionRoute,
@@ -1460,6 +1503,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUsageLogsAuditRoute: AuthenticatedUsageLogsAuditRoute,
   AuthenticatedWalletAffiliateRoute: AuthenticatedWalletAffiliateRoute,
   AuthenticatedWalletSubscriptionsRoute: AuthenticatedWalletSubscriptionsRoute,
+  AuthenticatedAdminTokensIndexRoute: AuthenticatedAdminTokensIndexRoute,
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
   AuthenticatedKeysIndexRoute: AuthenticatedKeysIndexRoute,

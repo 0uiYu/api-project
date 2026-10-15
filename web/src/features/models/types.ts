@@ -31,6 +31,10 @@ export interface Model {
   supported_endpoints?: string[]
   status: number
   sync_official: number
+  official_input_price?: number | null
+  official_output_price?: number | null
+  official_cache_price?: number | null
+  official_create_cache_price?: number | null
   created_time: number
   updated_time: number
   name_rule: number

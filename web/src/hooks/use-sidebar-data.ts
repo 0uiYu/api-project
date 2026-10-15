@@ -4,6 +4,7 @@ import {
   Box,
   CreditCard,
   FileText,
+  HeartPulse,
   Key,
   PlugZap,
   Radio,
@@ -60,7 +61,7 @@ export function useSidebarData(): SidebarData {
             icon: Key,
           },
           {
-            title: t('Usage Records'),
+            title: t('Call Logs'),
             url: '/usage-logs/common',
             icon: FileText,
           },
@@ -76,9 +77,19 @@ export function useSidebarData(): SidebarData {
         title: t('Admin Console'),
         items: [
           {
+            title: t('Operations Overview'),
+            url: '/dashboard/overview',
+            icon: Activity,
+          },
+          {
             title: t('Model Call Analytics'),
             url: '/dashboard/models',
             icon: BarChart3,
+          },
+          {
+            title: t('Revenue & Cost Analysis'),
+            url: '/dashboard/revenue',
+            icon: CreditCard,
           },
           {
             title: t('Audit Logs'),
@@ -86,12 +97,22 @@ export function useSidebarData(): SidebarData {
             icon: ScrollText,
           },
           {
+            title: t('Usage Records'),
+            url: '/usage-logs/common',
+            icon: FileText,
+          },
+          {
             title: t('Channels'),
             url: '/channels',
             icon: Radio,
           },
           {
-            title: t('Models'),
+            title: t('Channel Status'),
+            url: '/channel-status',
+            icon: HeartPulse,
+          },
+          {
+            title: t('Models & Pricing'),
             url: '/models/metadata',
             icon: Box,
           },
@@ -99,6 +120,11 @@ export function useSidebarData(): SidebarData {
             title: t('Users'),
             url: '/users',
             icon: Users,
+          },
+          {
+            title: t('API Key Management'),
+            url: '/admin-tokens',
+            icon: Key,
           },
           {
             title: t('Redemption Codes'),

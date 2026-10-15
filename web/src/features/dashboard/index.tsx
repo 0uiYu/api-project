@@ -21,6 +21,8 @@ import { useAuthStore } from '@/stores/auth-store'
 import { ModelsChartPreferences } from './components/models/models-chart-preferences'
 import { ModelsFilter } from './components/models/models-filter-dialog'
 import { OverviewDashboard } from './components/overview/overview-dashboard'
+import { AdminOverviewDashboard } from './components/overview/admin-overview-dashboard'
+import { RevenueAnalysis } from './components/revenue/revenue-analysis'
 import { DEFAULT_TIME_GRANULARITY } from './constants'
 import {
   buildDefaultDashboardFilters,
@@ -172,6 +174,9 @@ const SECTION_META: Record<DashboardSectionId, { titleKey: string }> = {
   users: {
     titleKey: 'User Analytics',
   },
+  revenue: {
+    titleKey: 'Revenue & Cost Analysis',
+  },
 }
 
 export function Dashboard() {
@@ -240,7 +245,10 @@ export function Dashboard() {
   const visibleSections = useMemo(
     () =>
       DASHBOARD_SECTION_IDS.filter(
-        (section) => section !== 'overview' && (section !== 'users' || isAdmin)
+        (section) =>
+          section !== 'overview' &&
+          (section !== 'users' || isAdmin) &&
+          (section !== 'revenue' || isAdmin)
       ),
     [isAdmin]
   )
@@ -310,7 +318,7 @@ export function Dashboard() {
   const sectionActions = modelActions ?? flowActions
 
   if (activeSection === 'overview') {
-    return <OverviewDashboard />
+    return isAdmin ? <AdminOverviewDashboard /> : <OverviewDashboard />
   }
 
   return (
@@ -411,6 +419,7 @@ export function Dashboard() {
               </Suspense>
             </FadeIn>
           )}
+          {activeSection === 'revenue' && isAdmin && <RevenueAnalysis />}
         </div>
       </SectionPageLayout.Content>
     </SectionPageLayout>
