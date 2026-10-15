@@ -52,7 +52,7 @@ function sidebarFor(admin?: object, user?: object, canConfigure = true) {
 }
 
 describe('security sidebar visibility', () => {
-  it('old configurations show Profile after the subscription plans and keep API Keys', () => {
+  it('legacy configurations keep the focused user console and API Keys', () => {
     const { result } = sidebarFor(
       { personal: { enabled: true, personal: true, topup: true } },
       { personal: { enabled: true, personal: true } }
@@ -65,10 +65,7 @@ describe('security sidebar visibility', () => {
       'Dashboard',
       'Model Square',
       'API Keys',
-      'Usage Records',
-      'Account Balance',
-      'Referral Program',
-      'Subscription Plans',
+      'Call Logs',
       'Profile',
     ])
     expect(
@@ -119,18 +116,17 @@ describe('console sidebar entries', () => {
       'Dashboard',
       'Model Square',
       'API Keys',
-      'Usage Records',
-      'Account Balance',
-      'Referral Program',
-      'Subscription Plans',
+      'Call Logs',
       'Profile',
+      'Operations Overview',
       'Model Call Analytics',
       'Audit Logs',
+      'Usage Records',
       'Channels',
-      'Models',
+      'Models & Pricing',
       'Users',
+      'API Key Management',
       'Redemption Codes',
-      'Subscriptions',
       'System Info',
       'Task Plugins',
       'System Settings',
@@ -185,6 +181,6 @@ describe('console sidebar entries', () => {
       .map((item) => item.title)
     expect(titles).not.toContain('Usage Records')
     expect(titles).toContain('API Keys')
-    expect(titles).toContain('Models')
+    expect(titles).toContain('Models & Pricing')
   })
 })

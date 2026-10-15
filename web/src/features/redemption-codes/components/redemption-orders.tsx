@@ -33,6 +33,7 @@ export function RedemptionOrders() {
   const statusLabel = (status: number) => {
     if (status === 1) return t('Delivered')
     if (status === 2) return t('Delivery failed')
+    if (status === 3) return t('Delivery in progress')
     return t('Pending')
   }
 

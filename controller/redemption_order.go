@@ -93,6 +93,19 @@ func RedemptionOrderWebhook(c *gin.Context) {
 			}
 		}
 	}
+	if order.Status == model.RedemptionOrderDelivered {
+		c.JSON(http.StatusOK, gin.H{"success": true, "order_id": order.ProviderOrderId, "status": "delivered"})
+		return
+	}
+	claimed, err := model.ClaimRedemptionOrderDelivery(order.Id)
+	if err != nil {
+		common.ApiError(c, err)
+		return
+	}
+	if !claimed {
+		c.JSON(http.StatusAccepted, gin.H{"success": true, "order_id": order.ProviderOrderId, "status": "processing"})
+		return
+	}
 	if err := deliverRedemptionOrder(order); err != nil {
 		common.ApiError(c, err)
 		return

@@ -1,20 +1,20 @@
 import { getRouteApi, useNavigate } from '@tanstack/react-router'
-import { Eye, EyeOff } from 'lucide-react'
-import { useState, useCallback, useMemo, lazy, Suspense } from 'react'
+import {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  lazy,
+  Suspense,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { SectionPageLayout } from '@/components/layout'
 import { FadeIn } from '@/components/page-transition'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { ROLE } from '@/lib/roles'
-import { computeTimeRange } from '@/lib/time'
+import { computeTimeRange, type TimeGranularity } from '@/lib/time'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -22,13 +22,11 @@ import { ModelsChartPreferences } from './components/models/models-chart-prefere
 import { ModelsFilter } from './components/models/models-filter-dialog'
 import { OverviewDashboard } from './components/overview/overview-dashboard'
 import { AdminOverviewDashboard } from './components/overview/admin-overview-dashboard'
-import { RevenueAnalysis } from './components/revenue/revenue-analysis'
 import { DEFAULT_TIME_GRANULARITY } from './constants'
 import {
   buildDefaultDashboardFilters,
   getDefaultDays,
   getSavedChartPreferences,
-  getSavedGranularity,
   saveChartPreferences,
 } from './lib'
 import {
@@ -40,7 +38,6 @@ import type {
   DashboardChartPreferences,
   DashboardFilters,
   QuotaDataItem,
-  UserChartsFilters,
 } from './types'
 
 const route = getRouteApi('/_authenticated/dashboard/$section')
@@ -83,18 +80,6 @@ const LazyConsumptionDistributionChart = lazy(() =>
 const LazyPerformanceOverview = lazy(() =>
   import('./components/models/performance-overview').then((m) => ({
     default: m.PerformanceOverview,
-  }))
-)
-
-const LazyUserCharts = lazy(() =>
-  import('./components/users/user-charts').then((m) => ({
-    default: m.UserCharts,
-  }))
-)
-
-const LazyFlowCharts = lazy(() =>
-  import('./components/flow/flow-charts').then((m) => ({
-    default: m.FlowCharts,
   }))
 )
 
@@ -168,21 +153,13 @@ const SECTION_META: Record<DashboardSectionId, { titleKey: string }> = {
   models: {
     titleKey: 'Model Call Analytics',
   },
-  flow: {
-    titleKey: 'Flow',
-  },
-  users: {
-    titleKey: 'User Analytics',
-  },
-  revenue: {
-    titleKey: 'Revenue & Cost Analysis',
-  },
 }
 
 export function Dashboard() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const params = route.useParams()
+  const search = route.useSearch()
   const userRole = useAuthStore((state) => state.auth.user?.role)
   const activeSection = (params.section ??
     DASHBOARD_DEFAULT_SECTION) as DashboardSectionId
@@ -194,18 +171,27 @@ export function Dashboard() {
   const [modelFilters, setModelFilters] = useState<DashboardFilters>(() =>
     buildDefaultDashboardFilters(getSavedChartPreferences())
   )
-  const [userChartsFilters, setUserChartsFilters] = useState<UserChartsFilters>(
-    () => {
-      const granularity = getSavedGranularity()
-      return {
-        timeGranularity: granularity,
-        selectedRange: getDefaultDays(granularity),
-        topUserLimit: 10,
-      }
-    }
-  )
-  const [flowSensitiveVisible, setFlowSensitiveVisible] = useState(true)
 
+  // The operations overview deep-links here with the range the operator was
+  // looking at, so the model analysis opens on the same window instead of the
+  // saved preference.
+  const deepLinkHours = search.hours
+  useEffect(() => {
+    if (typeof deepLinkHours !== 'number') return
+    const endTimestamp = new Date()
+    let timeGranularity: TimeGranularity = 'hour'
+    if (deepLinkHours >= 24 * 14) timeGranularity = 'week'
+    else if (deepLinkHours >= 24) timeGranularity = 'day'
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setModelFilters((prev) => ({
+      ...prev,
+      start_timestamp: new Date(
+        endTimestamp.getTime() - deepLinkHours * 3600 * 1000
+      ),
+      end_timestamp: endTimestamp,
+      time_granularity: timeGranularity,
+    }))
+  }, [deepLinkHours])
   const handleFilterChange = useCallback((filters: DashboardFilters) => {
     setModelFilters(filters)
   }, [])
@@ -243,14 +229,8 @@ export function Dashboard() {
   const meta = SECTION_META[activeSection] ?? SECTION_META.overview
   const isAdmin = Boolean(userRole && userRole >= ROLE.ADMIN)
   const visibleSections = useMemo(
-    () =>
-      DASHBOARD_SECTION_IDS.filter(
-        (section) =>
-          section !== 'overview' &&
-          (section !== 'users' || isAdmin) &&
-          (section !== 'revenue' || isAdmin)
-      ),
-    [isAdmin]
+    () => DASHBOARD_SECTION_IDS.filter((section) => section !== 'overview'),
+    []
   )
   const handleSectionChange = useCallback(
     (section: string) => {
@@ -278,44 +258,7 @@ export function Dashboard() {
         />
       </>
     ) : null
-  const flowActions =
-    activeSection === 'flow' ? (
-      <>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant='ghost'
-                size='icon'
-                onClick={() => setFlowSensitiveVisible((prev) => !prev)}
-                aria-label={
-                  flowSensitiveVisible
-                    ? t('Hide sensitive data')
-                    : t('Show sensitive data')
-                }
-                className='text-muted-foreground hover:text-foreground size-8'
-              />
-            }
-          >
-            {flowSensitiveVisible ? <Eye /> : <EyeOff />}
-          </TooltipTrigger>
-          <TooltipContent>
-            {flowSensitiveVisible
-              ? t('Hide sensitive data')
-              : t('Show sensitive data')}
-          </TooltipContent>
-        </Tooltip>
-        <ModelsFilter
-          preferences={chartPreferences}
-          currentFilters={modelFilters}
-          onFilterChange={handleFilterChange}
-          onReset={handleResetFilters}
-          titleKey='Flow Filters'
-          descriptionKey='Filter the traffic flow view by time range and user.'
-        />
-      </>
-    ) : null
-  const sectionActions = modelActions ?? flowActions
+  const sectionActions = modelActions
 
   if (activeSection === 'overview') {
     return isAdmin ? <AdminOverviewDashboard /> : <OverviewDashboard />
@@ -363,14 +306,16 @@ export function Dashboard() {
                   </Suspense>
                 </FadeIn>
               )}
+              <p className='text-muted-foreground px-1 text-xs'>
+                {t(
+                  'Charts use hourly aggregated quota data; the cards above count settled request logs.'
+                )}
+              </p>
               <FadeIn delay={0.1}>
                 <Suspense fallback={<ModelChartsFallback />}>
                   <LazyConsumptionDistributionChart
                     data={modelData}
                     loading={dataLoading}
-                    defaultChartType={
-                      chartPreferences.consumptionDistributionChart
-                    }
                     timeGranularity={
                       modelFilters.time_granularity || DEFAULT_TIME_GRANULARITY
                     }
@@ -386,7 +331,6 @@ export function Dashboard() {
                   <LazyModelCharts
                     data={modelData}
                     loading={dataLoading}
-                    defaultChartTab={chartPreferences.modelAnalyticsChart}
                     timeGranularity={
                       modelFilters.time_granularity || DEFAULT_TIME_GRANULARITY
                     }
@@ -399,27 +343,6 @@ export function Dashboard() {
               </FadeIn>
             </>
           )}
-          {activeSection === 'users' && (
-            <FadeIn>
-              <Suspense fallback={<ModelChartsFallback />}>
-                <LazyUserCharts
-                  filters={userChartsFilters}
-                  onFiltersChange={setUserChartsFilters}
-                />
-              </Suspense>
-            </FadeIn>
-          )}
-          {activeSection === 'flow' && (
-            <FadeIn>
-              <Suspense fallback={<ModelChartsFallback />}>
-                <LazyFlowCharts
-                  filters={modelFilters}
-                  sensitiveVisible={flowSensitiveVisible}
-                />
-              </Suspense>
-            </FadeIn>
-          )}
-          {activeSection === 'revenue' && isAdmin && <RevenueAnalysis />}
         </div>
       </SectionPageLayout.Content>
     </SectionPageLayout>

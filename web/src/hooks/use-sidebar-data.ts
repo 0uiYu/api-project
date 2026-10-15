@@ -2,9 +2,7 @@ import {
   Activity,
   BarChart3,
   Box,
-  CreditCard,
   FileText,
-  HeartPulse,
   Key,
   PlugZap,
   Radio,
@@ -87,11 +85,6 @@ export function useSidebarData(): SidebarData {
             icon: BarChart3,
           },
           {
-            title: t('Revenue & Cost Analysis'),
-            url: '/dashboard/revenue',
-            icon: CreditCard,
-          },
-          {
             title: t('Audit Logs'),
             url: '/usage-logs/audit',
             icon: ScrollText,
@@ -105,11 +98,6 @@ export function useSidebarData(): SidebarData {
             title: t('Channels'),
             url: '/channels',
             icon: Radio,
-          },
-          {
-            title: t('Channel Status'),
-            url: '/channel-status',
-            icon: HeartPulse,
           },
           {
             title: t('Models & Pricing'),
@@ -130,11 +118,6 @@ export function useSidebarData(): SidebarData {
             title: t('Redemption Codes'),
             url: '/redemption-codes',
             icon: Ticket,
-          },
-          {
-            title: t('Subscriptions'),
-            url: '/subscriptions',
-            icon: CreditCard,
           },
           {
             title: t('System Info'),

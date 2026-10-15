@@ -1,4 +1,3 @@
-import { IoNetDeploymentSettingsSection } from '../integrations/ionet-deployment-settings-section'
 import type { ModelSettings } from '../types'
 import { createSectionRegistry } from '../utils/section-registry'
 import { ClaudeSettingsCard } from './claude-settings-card'
@@ -103,18 +102,6 @@ const MODELS_SECTIONS = [
     ),
   },
 
-  {
-    id: 'model-deployment',
-    titleKey: 'Model Deployment',
-    build: (settings: ModelSettings) => (
-      <IoNetDeploymentSettingsSection
-        defaultValues={{
-          enabled: settings['model_deployment.ionet.enabled'],
-          apiKey: settings['model_deployment.ionet.api_key'],
-        }}
-      />
-    ),
-  },
 ] as const
 
 export type ModelSectionId = (typeof MODELS_SECTIONS)[number]['id']

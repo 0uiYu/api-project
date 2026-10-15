@@ -1,6 +1,6 @@
 import { VChart } from '@visactor/react-vchart'
 import { PieChart as PieChartIcon } from 'lucide-react'
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { IconBadge } from '@/components/ui/icon-badge'
@@ -8,7 +8,6 @@ import { useThemeCustomization } from '@/context/theme-customization-provider'
 import { useTheme } from '@/context/theme-provider'
 import {
   DEFAULT_TIME_GRANULARITY,
-  MODEL_ANALYTICS_CHART_OPTIONS,
 } from '@/features/dashboard/constants'
 import { processChartData } from '@/features/dashboard/lib'
 import type {
@@ -36,7 +35,6 @@ interface ModelChartsProps {
   loading?: boolean
   timeGranularity?: TimeGranularity
   timeRange?: { start: number; end: number }
-  defaultChartTab?: ModelAnalyticsChartTab
 }
 
 export function ModelCharts(props: ModelChartsProps) {
@@ -47,18 +45,12 @@ export function ModelCharts(props: ModelChartsProps) {
     '--radius-md',
     `${customization.preset}:${customization.radius}`
   )
-  const [activeTab, setActiveTab] = useState<ModelAnalyticsChartTab>(
-    props.defaultChartTab ?? 'trend'
-  )
+  const activeTab: ModelAnalyticsChartTab = 'trend'
   const [themeReady, setThemeReady] = useState(false)
   const themeManagerRef = useRef<
     (typeof import('@visactor/vchart'))['ThemeManager'] | null
   >(null)
   const timeGranularity = props.timeGranularity ?? DEFAULT_TIME_GRANULARITY
-
-  useEffect(() => {
-    if (props.defaultChartTab) setActiveTab(props.defaultChartTab)
-  }, [props.defaultChartTab])
 
   useEffect(() => {
     const updateTheme = async () => {
@@ -124,22 +116,6 @@ export function ModelCharts(props: ModelChartsProps) {
           </span>
         </div>
 
-        <div className='bg-muted/60 inline-flex h-7 w-full overflow-x-auto rounded-lg border p-0.5 sm:h-8 sm:w-auto'>
-          {MODEL_ANALYTICS_CHART_OPTIONS.map((tab) => (
-            <button
-              key={tab.value}
-              type='button'
-              onClick={() => setActiveTab(tab.value)}
-              className={`shrink-0 rounded-md px-3 text-xs font-medium transition-colors ${
-                activeTab === tab.value
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {t(tab.labelKey)}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className='h-[300px] p-1.5 sm:h-96 sm:p-2'>

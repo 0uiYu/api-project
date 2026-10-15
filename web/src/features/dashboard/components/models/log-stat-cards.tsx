@@ -3,13 +3,9 @@ import { useTranslation } from 'react-i18next'
 
 import { IconBadge } from '@/components/ui/icon-badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { getUserQuotaDates } from '@/features/dashboard/api'
+import { getAdminUsageSummary, getUserQuotaDates } from '@/features/dashboard/api'
 import { useModelStatCardsConfig } from '@/features/dashboard/hooks/use-dashboard-config'
-import {
-  buildQueryParams,
-  calculateDashboardStats,
-  getDefaultDays,
-} from '@/features/dashboard/lib'
+import { buildQueryParams, getDefaultDays } from '@/features/dashboard/lib'
 import type {
   QuotaDataItem,
   DashboardFilters,
@@ -73,23 +69,46 @@ export function LogStatCards(props: LogStatCardsProps) {
     const timeDiff = (timeRange.end_timestamp - timeRange.start_timestamp) / 60
     setTimeRangeMinutes(timeDiff)
 
-    void getUserQuotaDates(buildQueryParams(timeRange, filters), isAdmin)
+    // The cards must agree with the operations overview, which counts settled
+    // log rows, so they read the same admin summary. quota_data stays the
+    // source for the charts below, because only that table carries the
+    // per-model, per-bucket rows they plot.
+    void getAdminUsageSummary({
+      start_timestamp: timeRange.start_timestamp,
+      end_timestamp: timeRange.end_timestamp,
+    })
       .then((res) => {
         if (abortController.signal.aborted) return
-        const data = res?.data || []
-        setStats(calculateDashboardStats(data))
-        onDataUpdate?.(data, false)
+        const summary = res?.data
+        setStats({
+          totalQuota: summary?.charged_quota ?? 0,
+          totalCount: summary?.successful_requests ?? 0,
+          totalTokens:
+            (summary?.input_tokens ?? 0) +
+            (summary?.output_tokens ?? 0) +
+            (summary?.cache_read_tokens ?? 0) +
+            (summary?.cache_write_tokens ?? 0),
+        })
       })
       .catch(() => {
         if (abortController.signal.aborted) return
         setStats(null)
         setError(true)
-        onDataUpdate?.([], false)
       })
       .finally(() => {
         if (!abortController.signal.aborted) {
           setLoading(false)
         }
+      })
+
+    void getUserQuotaDates(buildQueryParams(timeRange, filters), isAdmin)
+      .then((res) => {
+        if (abortController.signal.aborted) return
+        onDataUpdate?.(res?.data || [], false)
+      })
+      .catch(() => {
+        if (abortController.signal.aborted) return
+        onDataUpdate?.([], false)
       })
 
     return () => {

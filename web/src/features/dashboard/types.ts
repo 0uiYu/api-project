@@ -15,135 +15,19 @@ export interface QuotaDataItem {
   quota?: number
 }
 
-export interface FlowQuotaDataItem {
-  user_id?: number
-  username?: string
-  node_name?: string
-  use_group?: string
-  token_id?: number
-  token_name?: string
-  channel_id?: number
-  channel_name?: string
-  model_name?: string
-  token_used?: number
-  count?: number
-  quota?: number
-}
-
-export type FlowMetric = 'quota' | 'tokens' | 'requests'
-
-export type FlowOverflowMode = 'aggregate' | 'hide'
-
-export type FlowRole = 'user' | 'admin' | 'root'
-
-export type FlowNodeKind =
-  | 'user'
-  | 'node'
-  | 'token'
-  | 'group'
-  | 'model'
-  | 'channel'
-
-export interface FlowNodeFilter {
-  kind: FlowNodeKind
-  id: string
-}
-
-export interface FlowLinkSelection {
-  source: string
-  target: string
-}
-
-export interface FlowBuildOptions {
-  role?: FlowRole
-  selectedUsers?: string[]
-  selectedNodes?: FlowNodeFilter[]
-  activeNode?: FlowNodeFilter
-  activeLink?: FlowLinkSelection
-  colorPalette?: readonly string[]
-  visibleStages?: FlowNodeKind[]
-  topNodeLimit?: number
-  overflowMode?: FlowOverflowMode
-  // When true, sensitive node labels (users, tokens, nodes, groups, channels)
-  // are partially masked in the rendered graph while keeping node identity so
-  // the Sankey shape stays intact.
-  maskSensitive?: boolean
-  // Resolves the label for a token whose record no longer exists (deleted).
-  // Lets the caller inject a localized string such as "Deleted (123)".
-  deletedTokenLabel?: (tokenId: number) => string
-  otherNodeLabel?: (kind: FlowNodeKind) => string
-}
-
-export interface DashboardFlowNode {
-  id: string
-  label: string
-  kind: FlowNodeKind
-  value: number
+/**
+ * Settled log totals for one window, as returned by the admin usage summary.
+ * This is the authority for request/token/charge numbers shown to operators.
+ */
+export interface AdminUsageSummary {
   requests: number
-  quota: number
-  tokens: number
-  color: string
-  colorKey: string
-  highlighted?: boolean
-  dimmed?: boolean
-}
-
-export interface DashboardFlowLink {
-  source: string
-  target: string
-  value: number
-  requests: number
-  quota: number
-  tokens: number
-  sourceLabel: string
-  targetLabel: string
-  color: string
-  linkColor: string
-  linkAlpha: number
-  hoverColor: string
-  colorKey: string
-  share: number
-  highlighted?: boolean
-  dimmed?: boolean
-}
-
-export interface DashboardFlowGraph {
-  nodes: DashboardFlowNode[]
-  links: DashboardFlowLink[]
-}
-
-export interface FlowUserFilterOption {
-  value: string
-  label: string
-  valueLabel: string
-  valueRaw: number
-  color: string
-}
-
-export interface FlowNodeFilterOption {
-  kind: FlowNodeKind
-  value: string
-  label: string
-  valueLabel: string
-  valueRaw: number
-  color: string
-}
-
-export interface FlowFilterOptions {
-  users: FlowUserFilterOption[]
-  nodes: FlowNodeFilterOption[]
-}
-
-export interface FlowSummary {
-  quota: number
-  tokens: number
-  requests: number
-}
-
-export interface ProcessedFlowData {
-  summary: FlowSummary
-  flow: DashboardFlowGraph
-  filterOptions: FlowFilterOptions
+  successful_requests: number
+  failed_requests: number
+  input_tokens: number
+  output_tokens: number
+  cache_read_tokens: number
+  cache_write_tokens: number
+  charged_quota: number
 }
 
 // ============================================================================
@@ -157,29 +41,19 @@ export interface DashboardFilters {
   username?: string
 }
 
-export type ConsumptionDistributionChartType = 'bar' | 'area'
-
 /**
  * What the consumption chart plots. `quota` is the billed amount converted to
  * the display currency; the other two are raw usage counts.
  */
 export type ConsumptionMetric = 'quota' | 'count' | 'tokens'
 
+// The model analytics chart renders one fixed view. The union stays so the
+// spec map below remains exhaustive if another view is ever added.
 export type ModelAnalyticsChartTab = 'trend' | 'proportion' | 'top'
 
 export interface DashboardChartPreferences {
-  consumptionDistributionChart: ConsumptionDistributionChartType
-  modelAnalyticsChart: ModelAnalyticsChartTab
   defaultTimeRangeDays: number
   defaultTimeGranularity: TimeGranularity
-}
-
-// User analytics selections are held by the dashboard parent so they survive
-// switching between dashboard sub-sections, matching the model/flow filters.
-export interface UserChartsFilters {
-  timeGranularity: TimeGranularity
-  selectedRange: number
-  topUserLimit: number
 }
 
 // ============================================================================
@@ -210,7 +84,3 @@ export interface ProcessedChartData {
   totalCountDisplay: string
 }
 
-export interface ProcessedUserChartData {
-  spec_user_rank: VChartSpec
-  spec_user_trend: VChartSpec
-}

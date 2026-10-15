@@ -13,6 +13,7 @@ const (
 	RedemptionOrderPending   = 0
 	RedemptionOrderDelivered = 1
 	RedemptionOrderFailed    = 2
+	RedemptionOrderSending   = 3
 )
 
 type RedemptionOrder struct {
@@ -27,6 +28,7 @@ type RedemptionOrder struct {
 	LastError        string `json:"last_error" gorm:"type:text"`
 	CreatedTime      int64  `json:"created_time" gorm:"bigint"`
 	DeliveredTime    int64  `json:"delivered_time" gorm:"bigint"`
+	SendingTime      int64  `json:"sending_time" gorm:"bigint"`
 }
 
 func GetRedemptionOrder(providerOrderId string) (*RedemptionOrder, error) {
@@ -42,7 +44,7 @@ func SearchRedemptionOrders(keyword, status string, startIdx, limit int) ([]*Red
 	}
 	if status != "" {
 		statusCode, err := strconv.Atoi(status)
-		if err != nil || statusCode < RedemptionOrderPending || statusCode > RedemptionOrderFailed {
+		if err != nil || statusCode < RedemptionOrderPending || statusCode > RedemptionOrderSending {
 			return nil, 0, errors.New("invalid redemption order status")
 		}
 		query = query.Where("status = ?", statusCode)
@@ -56,6 +58,24 @@ func SearchRedemptionOrders(keyword, status string, startIdx, limit int) ([]*Red
 		return nil, 0, err
 	}
 	return orders, total, nil
+}
+
+// ClaimRedemptionOrderDelivery atomically grants one webhook attempt the
+// right to send the email. Failed orders may be retried; concurrent callbacks
+// cannot both transition the same order into sending.
+func ClaimRedemptionOrderDelivery(id int) (bool, error) {
+	staleBefore := common.GetTimestamp() - 10*60
+	result := DB.Model(&RedemptionOrder{}).
+		Where("id = ? AND (status IN ? OR (status = ? AND sending_time < ?))", id,
+			[]int{RedemptionOrderPending, RedemptionOrderFailed}, RedemptionOrderSending, staleBefore).
+		Updates(map[string]any{
+			"status":       RedemptionOrderSending,
+			"sending_time": common.GetTimestamp(),
+		})
+	if result.Error != nil {
+		return false, result.Error
+	}
+	return result.RowsAffected == 1, nil
 }
 
 func CreateRedemptionOrder(providerOrderId, email, productName string, quota, userId int) (*RedemptionOrder, error) {
@@ -97,6 +117,7 @@ func MarkRedemptionOrderDelivered(id int) error {
 	return DB.Model(&RedemptionOrder{}).Where("id = ?", id).Updates(map[string]any{
 		"status":         RedemptionOrderDelivered,
 		"delivered_time": common.GetTimestamp(),
+		"sending_time":   0,
 		"last_error":     "",
 	}).Error
 }
@@ -105,6 +126,7 @@ func MarkRedemptionOrderFailed(id int, deliveryError string) error {
 	return DB.Model(&RedemptionOrder{}).Where("id = ?", id).Updates(map[string]any{
 		"status":            RedemptionOrderFailed,
 		"delivery_attempts": gorm.Expr("delivery_attempts + 1"),
+		"sending_time":      0,
 		"last_error":        deliveryError,
 	}).Error
 }

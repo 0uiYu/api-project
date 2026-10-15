@@ -8,10 +8,8 @@ import {
   TIME_RANGE_BY_GRANULARITY,
 } from '@/features/dashboard/constants'
 import type {
-  ConsumptionDistributionChartType,
   DashboardChartPreferences,
   DashboardFilters,
-  ModelAnalyticsChartTab,
 } from '@/features/dashboard/types'
 import { getRollingDateRange, type TimeGranularity } from '@/lib/time'
 
@@ -23,18 +21,6 @@ function getLegacySavedGranularity(): TimeGranularity {
   if (typeof window === 'undefined') return DEFAULT_TIME_GRANULARITY
   const saved = localStorage.getItem(TIME_GRANULARITY_STORAGE_KEY)
   return isTimeGranularity(saved) ? saved : DEFAULT_TIME_GRANULARITY
-}
-
-function isConsumptionDistributionChartType(
-  value: unknown
-): value is ConsumptionDistributionChartType {
-  return value === 'bar' || value === 'area'
-}
-
-function isModelAnalyticsChartTab(
-  value: unknown
-): value is ModelAnalyticsChartTab {
-  return value === 'trend' || value === 'proportion' || value === 'top'
 }
 
 function isTimeRangePresetDays(value: unknown): value is number {
@@ -87,14 +73,6 @@ export function getSavedChartPreferences(): DashboardChartPreferences {
 
     const parsed = JSON.parse(raw) as Partial<DashboardChartPreferences>
     return {
-      consumptionDistributionChart: isConsumptionDistributionChartType(
-        parsed.consumptionDistributionChart
-      )
-        ? parsed.consumptionDistributionChart
-        : fallbackPreferences.consumptionDistributionChart,
-      modelAnalyticsChart: isModelAnalyticsChartTab(parsed.modelAnalyticsChart)
-        ? parsed.modelAnalyticsChart
-        : fallbackPreferences.modelAnalyticsChart,
       defaultTimeRangeDays: isTimeRangePresetDays(parsed.defaultTimeRangeDays)
         ? parsed.defaultTimeRangeDays
         : fallbackPreferences.defaultTimeRangeDays,

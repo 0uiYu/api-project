@@ -1,5 +1,5 @@
 import { VChart } from '@visactor/react-vchart'
-import { AreaChart, BarChart3, WalletCards } from 'lucide-react'
+import { WalletCards } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -7,12 +7,10 @@ import { IconBadge } from '@/components/ui/icon-badge'
 import { useThemeCustomization } from '@/context/theme-customization-provider'
 import { useTheme } from '@/context/theme-provider'
 import {
-  CONSUMPTION_DISTRIBUTION_CHART_OPTIONS,
   DEFAULT_TIME_GRANULARITY,
 } from '@/features/dashboard/constants'
 import { processChartData } from '@/features/dashboard/lib'
 import type {
-  ConsumptionDistributionChartType,
   ConsumptionMetric,
   QuotaDataItem,
 } from '@/features/dashboard/types'
@@ -29,22 +27,13 @@ interface ConsumptionDistributionChartProps {
   loading?: boolean
   timeGranularity?: TimeGranularity
   timeRange?: { start: number; end: number }
-  defaultChartType?: ConsumptionDistributionChartType
   /**
-   * Render the bars alone: no header, no border and no bar/area switcher. The
-   * user portal shows one bar chart and never offers the area variant.
+   * Render the bars alone: no header and no border. The user portal shows one
+   * bar chart and never offers the area variant.
    */
   bare?: boolean
   /** What the bars measure. Only the bar variant honours it. */
   metric?: ConsumptionMetric
-}
-
-const CHART_TYPE_ICONS: Record<
-  ConsumptionDistributionChartType,
-  typeof BarChart3
-> = {
-  bar: BarChart3,
-  area: AreaChart,
 }
 
 export function ConsumptionDistributionChart(
@@ -57,18 +46,11 @@ export function ConsumptionDistributionChart(
     '--radius-md',
     `${customization.preset}:${customization.radius}`
   )
-  const [chartType, setChartType] = useState<ConsumptionDistributionChartType>(
-    props.defaultChartType ?? 'bar'
-  )
   const [themeReady, setThemeReady] = useState(false)
   const themeManagerRef = useRef<
     (typeof import('@visactor/vchart'))['ThemeManager'] | null
   >(null)
   const timeGranularity = props.timeGranularity ?? DEFAULT_TIME_GRANULARITY
-
-  useEffect(() => {
-    if (props.defaultChartType) setChartType(props.defaultChartType)
-  }, [props.defaultChartType])
 
   useEffect(() => {
     const updateTheme = async () => {
@@ -109,9 +91,9 @@ export function ConsumptionDistributionChart(
       props.metric,
     ]
   )
-  const activeType = props.bare ? 'bar' : chartType
-  const spec = activeType === 'bar' ? chartData.spec_line : chartData.spec_area
-  const specType = typeof spec?.type === 'string' ? spec.type : chartType
+  const activeType = 'bar'
+  const spec = chartData.spec_line
+  const specType = typeof spec?.type === 'string' ? spec.type : activeType
   const chartKey = [
     activeType,
     props.metric ?? 'quota',
@@ -153,26 +135,6 @@ export function ConsumptionDistributionChart(
           </span>
         </div>
 
-        <div className='bg-muted/60 inline-flex h-7 w-full overflow-x-auto rounded-lg border p-0.5 sm:h-8 sm:w-auto'>
-          {CONSUMPTION_DISTRIBUTION_CHART_OPTIONS.map((item) => {
-            const Icon = CHART_TYPE_ICONS[item.value]
-            return (
-              <button
-                key={item.value}
-                type='button'
-                onClick={() => setChartType(item.value)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors ${
-                  chartType === item.value
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Icon className='size-3.5' />
-                {t(item.labelKey)}
-              </button>
-            )
-          })}
-        </div>
       </div>
 
       {chartBody}

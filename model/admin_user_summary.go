@@ -1,5 +1,7 @@
 package model
 
+import "github.com/0uiYu/api-project/common"
+
 // AdminUserSummary is the read-only cross-module snapshot shown to an
 // administrator. Counts are deliberately computed from the source tables so
 // this endpoint cannot drift into a second, manually maintained counter.
@@ -26,7 +28,9 @@ func GetAdminUserSummary(userID int) (*AdminUserSummary, error) {
 	if err := DB.Model(&TopUp{}).Where("user_id = ?", userID).Count(&result.TopUpCount).Error; err != nil {
 		return nil, err
 	}
-	if err := DB.Model(&TopUp{}).Where("user_id = ?", userID).Select("COALESCE(SUM(quota), 0)").Scan(&result.TopUpQuota).Error; err != nil {
+	if err := DB.Model(&TopUp{}).
+		Where("user_id = ? AND status = ?", userID, common.TopUpStatusSuccess).
+		Select("COALESCE(SUM(credited_quota), 0)").Scan(&result.TopUpQuota).Error; err != nil {
 		return nil, err
 	}
 	if err := DB.Model(&Redemption{}).Where("user_id = ?", userID).Count(&result.RedemptionCount).Error; err != nil {
