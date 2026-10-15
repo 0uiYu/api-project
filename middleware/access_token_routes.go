@@ -44,6 +44,7 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	// router/api-router.go: top level
 	"GET /api/models":                     accessTokenScopeRule("profile:read"),
 	"GET /api/status/test":                accessTokenScopeRule("log:read"),
+	"GET /api/channel-status":             accessTokenScopeRule("channel:read"),
 	"GET /api/pricing":                    accessTokenAnyRule,
 	"GET /api/perf-metrics/summary":       accessTokenAnyRule,
 	"GET /api/perf-metrics":               accessTokenAnyRule,
@@ -114,6 +115,7 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"DELETE /api/user/:id/oauth/bindings/:provider_id": accessTokenScopeRule("user:write"),
 	"DELETE /api/user/:id/bindings/:binding_type":      accessTokenScopeRule("user:write"),
 	"GET /api/user/:id":                                accessTokenScopeRule("user:read"),
+	"GET /api/user/:id/summary":                        accessTokenScopeRule("user:read"),
 	"POST /api/user/":                                  accessTokenScopeRule("user:write"),
 	"POST /api/user/manage":                            accessTokenScopeRule("user:write"),
 	"PUT /api/user/":                                   accessTokenScopeRule("user:write"),
@@ -225,6 +227,7 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	// router/api-router.go: /api/redemption
 	"GET /api/redemption/":           accessTokenScopeRule("redemption:read"),
 	"GET /api/redemption/search":     accessTokenScopeRule("redemption:read"),
+	"GET /api/redemption/orders":     accessTokenScopeRule("redemption:read"),
 	"GET /api/redemption/:id":        accessTokenScopeRule("redemption:read"),
 	"POST /api/redemption/":          accessTokenScopeRule("redemption:write"),
 	"POST /api/redemption/batch":     accessTokenScopeRule("redemption:write"),
@@ -243,6 +246,14 @@ var accessTokenRouteRules = map[string]accessTokenRouteRule{
 	"GET /api/log/self/search":                  accessTokenScopeRule("usage:read"),
 	"GET /api/data/":                            accessTokenScopeRule("log:read"),
 	"GET /api/data/self":                        accessTokenScopeRule("usage:read"),
+
+	// router/api-router.go: /api/admin (tokens, analytics, affiliate)
+	"GET /api/admin/tokens/":                       accessTokenScopeRule("user:read"),
+	"PATCH /api/admin/tokens/:id/status":           accessTokenScopeRule("user:write"),
+	"GET /api/admin/analytics/usage-summary":       accessTokenScopeRule("log:read"),
+	"GET /api/admin/analytics/operations-overview": accessTokenScopeRule("log:read"),
+	"GET /api/admin/analytics/operations-trend":    accessTokenScopeRule("log:read"),
+	"GET /api/admin/affiliate/stats":               accessTokenScopeRule("user:read"),
 
 	// router/api-router.go: /api/group, /api/prefill_group
 	"GET /api/group/":               accessTokenScopeRule("group:read"),
